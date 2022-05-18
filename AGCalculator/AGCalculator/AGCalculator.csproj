@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2775A2B7-18E2-4D0E-BF5B-83D836A90B17}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>AGCalculator</RootNamespace>
+    <AssemblyName>AGCalculator</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Calculator icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Circle.cs" />
+    <Compile Include="Ellipse.cs" />
+    <Compile Include="FormAdd2D.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAdd2D.Designer.cs">
+      <DependentUpon>FormAdd2D.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormLanguage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormLanguage.Designer.cs">
+      <DependentUpon>FormLanguage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormMainMenu.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainMenu.Designer.cs">
+      <DependentUpon>FormMainMenu.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormParametricCheck.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormParametricCheck.Designer.cs">
+      <DependentUpon>FormParametricCheck.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Hyperbola.cs" />
+    <Compile Include="IMyForm.cs" />
+    <Compile Include="IObjectAG.cs" />
+    <Compile Include="FormDisplay2D.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDisplay2D.Designer.cs">
+      <DependentUpon>FormDisplay2D.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IParametric.cs" />
+    <Compile Include="LanguageCzech.cs" />
+    <Compile Include="LanguageEnglish.cs" />
+    <Compile Include="Language.cs" />
+    <Compile Include="Line.cs" />
+    <Compile Include="MyPoint.cs" />
+    <Compile Include="ObjectInfo.cs" />
+    <Compile Include="Parabola.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="FormRemove.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormRemove.Designer.cs">
+      <DependentUpon>FormRemove.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Vector.cs" />
+    <EmbeddedResource Include="FormAdd2D.resx">
+      <DependentUpon>FormAdd2D.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormDisplay2D.resx">
+      <DependentUpon>FormDisplay2D.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormLanguage.resx">
+      <DependentUpon>FormLanguage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMainMenu.resx">
+      <DependentUpon>FormMainMenu.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormParametricCheck.resx">
+      <DependentUpon>FormParametricCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormRemove.resx">
+      <DependentUpon>FormRemove.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Calculator icon.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,748 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+
+namespace Excel
+{  
+    class Cell
+    {
+        public virtual int GetValue()
+        {
+
+        }
+
+        public virtual void PrintCell(TextWriter writer)
+        {
+            throw new Exception("Unhandled Cell type called to be printed.");
+        }
+    }
+
+    class EmptyCell : Cell
+    {
+        public const string emptyCellSymbol = "[]";
+
+        public override void PrintCell(TextWriter writer)
+        {
+            writer.Write(emptyCellSymbol);
+        }
+    }
+
+    class ErrorCell : Cell
+    {
+        public const string errorInvalidValue = "#INVVAL";
+
+        public override void PrintCell(TextWriter writer)
+        {
+            writer.Write(errorInvalidValue);
+        }
+    }
+
+    class FormulaCell : Cell
+    {
+        public const string formulaStart = "=";
+
+        public const string errorDivisionByZero = "#DIV0";
+        public const string errorReferenceCycle = "#CYCLE";
+        public const string errorCalculation = "#ERROR";
+        public const string errorMissingFormulaOperator = "#MISSOP";
+        public const string errorFormulaInvalidOperands = "#FORMULA";
+        // public static string[] errors = new string[] { errorDivisionByZero, errorReferenceCycle, errorCalculation, errorMissingFormulaOperator, errorFormulaInvalidOperands };
+
+        /// <summary>
+        /// Formula text notation.
+        /// </summary>        
+        public string Text { get; set; }
+        /// <summary>
+        /// Value to calculate with.
+        /// </summary>
+        public int Value { get; set; }
+        /// <summary>
+        /// // Cycle indicator.
+        /// (Note: Type Byte should be sufficient. Be careful.)
+        /// </summary>
+        public byte CallCount { get; set; }   
+        /// <summary>
+        /// 0...Not evaluated yet;
+        /// else Evaluated:
+        /// 1...Value;
+        /// 2...errorDivisionByZero;
+        /// 3...errorReferenceCycle;
+        /// 4...errorCalculation;
+        /// 5...errorMissingFormulaOperator;
+        /// 6...errorFormulaInvalidOperands
+        /// </summary>
+        public byte Evaluated { get; set; }
+
+        public FormulaCell(string text)
+        {
+            Text = text;
+            Value = int.MinValue;  // We don't know yet.
+            CallCount = 0;  
+            Evaluated = 0;  // To be evaluated.
+        }
+
+        public override void PrintCell(TextWriter writer)
+        {
+            switch (Evaluated)
+            {
+                case 0:
+                    throw new Exception("Trying to print an unevaluated instance of FormulaCell class.");
+                case 1:
+                    writer.Write(Value.ToString());
+                    break;
+                case 2:
+                    writer.Write(errorDivisionByZero);
+                    break;
+                case 3:
+                    writer.Write(errorReferenceCycle);
+                    break;
+                case 4:
+                    writer.Write(errorCalculation);
+                    break;
+                case 5:
+                    writer.Write(errorMissingFormulaOperator);
+                    break;
+                case 6:
+                    writer.Write(errorFormulaInvalidOperands);
+                    break;
+                default:
+                    throw new Exception("Unhandled type of FormulaCell.Evaluated called to be printed.");                    
+            }
+        }
+    }
+
+    class ValueCell : Cell
+    {
+        public int Value { get; set; }  // Sufficient according to task specification.
+
+        public ValueCell(int value)
+        {
+            Value = value;
+        }
+
+        public override void PrintCell(TextWriter writer)
+        {
+            writer.Write(Value.ToString());
+        }
+    }
+
+    class Sheet
+    {
+        public List<List<Cell>> Cells { get; set; }
+
+        /// <summary>
+        /// The class constructor of Sheet class.
+        /// It creates a List of empty rows (which's type: List<Cell>).
+        /// The List is created with 1st empty row (index 0).
+        /// </summary>
+        public Sheet()
+        {
+            Cells = new List<List<Cell>>();
+            Cells.Add(new List<Cell>());
+        }
+    }
+
+    class SheetReader
+    {
+        // Created only once.
+        private EmptyCell emptyCell = new EmptyCell();
+        private ErrorCell errorCell = new ErrorCell();
+
+        public Cell GetNewCell(string text)
+        {
+            if (text == EmptyCell.emptyCellSymbol)
+            {
+                return emptyCell;   // Already created.
+            }
+            else if (text.StartsWith(FormulaCell.formulaStart))
+            {
+                return new FormulaCell(text);
+            }
+            else if (int.TryParse(text, out int result))
+            {
+                return new ValueCell(result);
+            }
+            else
+            {
+                return errorCell;   // Already created.
+            }
+        }
+
+        public Sheet GetSheet(TextReader reader)
+        {
+            Sheet sheet = new Sheet();  // List construction + first row construction included in Sheet class.
+            StringBuilder sb = new StringBuilder(); // Constructing a cell value.
+            int intSymbol;
+            char symbol;
+
+            while ((intSymbol = reader.Read()) != -1)
+            {
+                symbol = (char)intSymbol;
+
+                switch (symbol)
+                {
+                    case ' ':
+                    case '\n':
+                        if (sb.Length > 0)
+                        {
+                            Cell cell = GetNewCell(sb.ToString());
+                            sb.Clear();                        
+                            sheet.Cells[sheet.Cells.Count - 1].Add(cell);
+                        }
+                        if (symbol == '\n')
+                        {
+                            // Note: Integer is sufficient (from task specification).
+                            sheet.Cells.Add(new List<Cell>());  // Adding another row.
+                        }
+                        break;
+                    default:
+                        sb.Append(symbol);
+                        break;
+                }
+            }
+
+            if (sb.Length > 0)
+            {
+                Cell cell = GetNewCell(sb.ToString());
+                sheet.Cells[sheet.Cells.Count - 1].Add(cell);
+                // sb.Clear(); // Not needed.
+            }
+
+            return sheet;
+        }
+    }
+
+    class SheetWriter
+    {
+        // We know that int is enough for storing. To avoid infinite cycle, we use long i, j in the cycles' heads.
+        public void PrintSheet(Sheet sheet, TextWriter writer)
+        {
+            for (long i = 0; i < sheet.Cells.Count; i++)
+            {
+                for (long j = 0; j < sheet.Cells[(int)i].Count; j++)   // The conversion will be ok thanks to the task specification.
+                {
+                    sheet.Cells[(int)i][(int)j].PrintCell(writer);  // Overridden method.
+                    writer.Write(' ');
+                }
+                writer.WriteLine();
+            }
+        }
+        // Note: There will be one ' ' after every element (even at the end of every line).
+        // Note: There will be an empty line at the end of the printed sheet.
+    }
+
+    class EvaluationClass
+    {
+        private static Dictionary<string, Sheet> excelSheets = new Dictionary<string, Sheet>();        
+        private const string sheetSuffix = ".sheet";
+        private static List<char> operators = new List<char> { '+', '-', '*', '/' };        
+        private const int emptyCellValue = 0;
+        private const int undefinedCellValue = 0;
+        private const char differentSheetSymbol = '!';
+
+        // Temporarly being concated with errorReferenceCycle to detect a whole cycle.
+        private const char newCycleFoundSymbol = '!';
+
+
+        private const int lettersInAlphabet = 26;
+        private const char firstLetter = 'A';
+        private const char lastLetter = 'Z';         
+                        
+        private static Sheet errorSheet = new Sheet();
+
+        public EvaluationClass(string mainSheetKey, Sheet mainSheet)
+        {
+
+            // DELETE !!!
+            /*// Creating errorSheet:
+            errorSheet.Cells.Add(new List<Cell>()); // The 1st and only row.
+            for (int i = 0; i <= errors.Length - 1; i++)
+            {
+                Cell cell = new Cell(errors[i]);
+                cell.Evaluated = true;
+                errorSheet.Cells[0].Add(cell);
+            }*/
+            
+            // Preparing our sheet dictionary.
+            if (excelSheets.Count != 0)
+            {
+                excelSheets.Clear();
+            }
+            int startRemovingIndex = mainSheetKey.Length - sheetSuffix.Length;
+            mainSheetKey = mainSheetKey.Remove(startRemovingIndex);
+            excelSheets.Add(mainSheetKey, mainSheet);
+        }
+
+        /// <summary>
+        /// Returns integer which is the correct index of a cell's column.
+        /// If the notation is invalid and check == true, the method throws a new ArgumentException.
+        /// Note: Works with capital letter from English alphabet only.
+        /// </summary>
+        /// <param name="letters">Column ("excel") notation. (Eg. AAD, EF, X, ...)</param>
+        /// <param name="check">Do you want the method to check an input validity? Put true for Debug, false for Release.</param>
+        /// <returns>Index of the cell's column or -1 for invalid notation.</returns>
+        public int DecodeColumnIndex(string letters, bool check)
+        {
+            int exponent;
+            int multiplicationValue = 1;
+            int index = -1;  // Int must be sufficient according to the input specification.
+            // Starting from -1 because we want to start indexing from 0 (letters == "A" -> index == 0).
+
+            // Checking if the notation is valid.
+            if (check)
+            {
+                for (int i = 0; i < letters.Length; i++)
+                {
+                    if (letters[i] < firstLetter || letters[i] > lastLetter)
+                    {
+                        throw new ArgumentException("Invalid notation. Parameter has to be a sequence of capital English letters.");
+                    }
+                }
+            }
+
+            for (exponent = 0; exponent < letters.Length; exponent++)
+            {    
+                index += multiplicationValue * ((int)letters[letters.Length - exponent - 1] - (int)firstLetter + 1);
+                multiplicationValue *= lettersInAlphabet;
+            }
+
+            return index;
+            // Debug note: Tested. Trustful.
+        }
+
+
+        /// <summary>
+        /// Returns a coresponding int value to the cell.Value.
+        /// Do not call this method on a non-evaluated cell!
+        /// For all errors and other non-parsable strings returns int.MinValue.
+        /// For cyclic reference returns int.MaxValue and MODIFIES cell.Value. (Removes the newCycleFoundSymbol indicator from the start of cell.Value.)
+        /// </summary>
+        /// <param name="sheet">Cell's sheet. (Sheet in which the cell is.)</param>
+        /// <param name="row">List index of a cell's row in its sheet. (Logic index - 1.)</param>
+        /// <param name="column">List index of a cell's column in its sheet. (A = 0, AA = 26, AZ = 51, ...)</param>
+        /// <returns>If the cell is undefined in the current sheet, returns undefinedCellValue. If the cell.Value == emptyCellSymbol, returns emptyCellValue. Returns parsed integer if parsable. If not, then returns int.MinValue. If the cell is a part of a new cycle, returns int.MaxValue.</returns>
+        private int GetCellValue(Sheet sheet, int row, int column)
+        {
+            // Checking if the cell is defined in the sheet. (If not, returns undefinedCellValue.)
+            // Note: The order is important.
+            if (row >= sheet.Cells.Count || column >= sheet.Cells[row].Count)
+            {
+                return undefinedCellValue;
+            }
+
+            // The cell is defined in the sheet.
+            Cell cell = sheet.Cells[row][column];
+
+            if (cell is EmptyCell)
+            {
+                return emptyCellValue;
+            }
+            else if (cell is ErrorCell)
+            {
+                return int.MinValue;    // Invalid (non-cyclic) value.
+            }
+            else if (cell is ValueCell)
+            {
+                return cell.Value;
+            }
+                
+            if (!cell.Evaluated)
+            {
+                throw new Exception("This method cannot be called on a non-evaluated cell.");
+            }
+
+            // Is the value a constant integer?
+            int result;
+            if (int.TryParse(cell.Value, out result))
+            {
+                return result;
+            }
+
+            // Cycle is fresh and our cell is a part of it.
+            if (cell.Value.StartsWith(newCycleFoundSymbol.ToString()))
+            {
+                cell.Value = cell.Value.Remove(0, 1);   // Removing the newCycleFoundSymbol
+                return int.MaxValue;
+            }
+
+            switch (cell.Value)
+            {
+                case EmptyCell.emptyCellSymbol:
+                    return emptyCellValue;
+                // All possible errors!
+                case ErrorCell.errorInvalidValue:
+                case errorDivisionByZero:
+                case errorReferenceCycle:
+                case errorCalculation:
+                case errorMissingFormulaOperator:
+                case errorFormulaInvalidOperands:
+                    return int.MinValue;
+            }
+            throw new Exception("Unhandled cell.Value in GetCellValue method.");
+        }
+
+
+        /// <summary>
+        /// Getting the sheetKey:
+        /// If there is a sheet specified (sheetName + differentSheetSymbol), the method will try to MODIFY the excelSheets Dictionary by adding the sheet if it's not present yet.
+        /// It will first attempt to READ the sheet FILE. If it's not possible, it will return null and both indeces will be int.MaxValue! (This will be interpreted as an errorCalculation.)
+        /// If the file is read, then the sheet is created as an instance of Sheet class and if it's not present in the excelSheet Dictionary,
+        /// it will be added with a string key that was in a cellCode before the differentSheetSymbol (without default sheetSuffix).
+        /// Note: If the string before differentSheetSymbol ends with sheetSuffix, another sheetSuffix will be added as a path to the sheet file.
+        /// If there's no sheet specification, sheetKey will be mainSheetKey (const for current EvaluationClass instance).
+        /// 
+        /// Getting the cellLocation:
+        /// The method will then try to separate letters and numbers from the cellLocation (cellCode without the sheet information).
+        /// If there are no capital letters at the beginning or if numbers start with '0', '+' or '-' or if the rest of the string
+        /// after letters isn't parsable to int, the method will return null and both indeces will be int.MinValue. (This will be interpreted as an errorFormulaInvalidOperands.)
+        /// If cellLocation is in a valid format, rowIndex will be ONE LESS than the parsed number (List indexing vs. excel logic indexing)
+        /// and columnIndex will be figured out by calling DecodeColumnIndex method.
+        /// </summary>
+        /// <param name="cellCode">Reference to a cell. (Valid formats: A55, ZA9 ABC123, sheetName!ABC123)</param>
+        /// <returns>Row index of a cell; column index of a cell; cell's sheet (for excelSheets Dictionary)</returns>
+        public Tuple<Sheet, int, int> DecodeCellLocation(Sheet currentSheet, string cellCode)      // BUG: In different sheets there doesn't need to be sheetName!XXX::: !!! We need to transmit current sheetKey somehow!!!
+        {
+            Sheet sheet = currentSheet;
+            string cellLocation = cellCode;
+
+            // Expansion (getting a sheet key).
+            if (cellCode.Contains(differentSheetSymbol.ToString()))
+            {
+                string[] tokens = cellCode.Split(differentSheetSymbol);
+                string sheetKey = tokens[0];
+                cellLocation = tokens[1];
+
+                if (!excelSheets.ContainsKey(tokens[0]))
+                {
+                    try
+                    {
+                        using (StreamReader streamReader = new StreamReader(tokens[0] + sheetSuffix))
+                        {
+                            SheetReader sheetReader = new SheetReader();
+                            sheet = sheetReader.GetSheet(streamReader);
+                            excelSheets.Add(sheetKey, sheet);
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        return new Tuple<Sheet, int, int>(null, int.MaxValue, int.MaxValue);    // errorCalculation
+                    }
+                }
+            }
+
+            // Decoding cell's location in a sheet.
+            StringBuilder sb = new StringBuilder();
+            int rowIndex = 0;
+            int columnIndex = 0;
+            string rowText = null;
+            string columnText = null;
+
+            // The order of conditions is important (for range checking).
+            int i = 0;
+            while (i < cellLocation.Length && cellLocation[i] >= firstLetter && cellLocation[i] <= lastLetter)
+            {
+                sb.Append(cellLocation[i]);
+                i++;
+            }
+            columnText = sb.ToString();
+            sb.Clear();
+
+            if (columnText.Length == 0)
+            {                
+                return new Tuple<Sheet, int, int>(null, int.MinValue, int.MinValue);    // errorFormulaInvalidOperands
+            }
+
+            rowText = cellLocation.Remove(0, i);
+
+            if (rowText.StartsWith("0") || rowText.StartsWith("-") || rowText.StartsWith("+")) // Invalid: 023, 0, -5, +71.
+            {
+                return new Tuple<Sheet, int, int>(null, int.MinValue, int.MinValue);    // errorFormulaInvalidOperands
+            }
+            else if (!int.TryParse(rowText, out rowIndex))  // Invalid: q1, .x, etc.
+            {
+                return new Tuple<Sheet, int, int>(null, int.MinValue, int.MinValue);   // errorFormulaInvalidOperands
+            }
+            else   // Now we know that rowIndex is an pozitive integer.
+            {
+                rowIndex--; // Logic indexing starts at 1. However, List indexing starts at 0.
+                columnIndex = DecodeColumnIndex(columnText, false);      // Change to true for DEBUGGING.
+            }
+
+            return new Tuple<Sheet, int, int>(sheet, rowIndex, columnIndex);
+        }
+
+
+        /// <summary>
+        /// Reads from sheet.Cells[row][column].Value. MODIFIES all cell.Value(s) of cells met on its path in our excelSheet Dictionary that haven't been evaluated yet.
+        /// The modification happens through calling EvaluateCell(...) method.
+        /// Call this method on formulas only! (Starting with a formulaStart symbol.)
+        /// Finds an operator (called operation) and splits the rest to two operands. If there's no operator, returning errorMissingOperator.
+        /// The method then takes each of the operands, calls EvaluateCell(...) on it, which can MODIFY its Value, and then calls GetCellValue(...) so it can calculate the output.
+        /// If there's a division by 0, returns errorDivisionByZero, if one of the operands == int.MinValue, then returns errorReferenceCycle or errorCalculation.
+        /// To distinguish between those two errors, it uses an indicator in a form of newFoundCycleSymbol which is at the start of the errorReferenceCycle cell.Value.
+        /// If the cell.CallCount at the beginning of this method is >= 2, errorReferenceCycle is returned and the method ends immediately.
+        /// Otherwise returns the result of the operation.
+        /// </summary>
+        /// <param name="sheet">Cell's sheet. (Sheet in which the cell is.)</param>
+        /// <param name="row">List index of a cell's row in its sheet. (Logic index - 1.)</param>
+        /// <param name="column">List index of a cell's column in its sheet. (A = 0, AA = 26, AZ = 51, ...)</param>
+        /// <returns>String that shall replace formula in current cell.</returns>
+        private string GetFormulaResult(Sheet sheet, int row, int column)
+        {
+            Tuple<Sheet, int, int> operandInfo;
+            Cell cell = sheet.Cells[row][column];
+            cell.CallCount++;
+            // This cell is the first cell detected in a newly found cycle.
+            if (cell.CallCount >= 2)
+            {
+                // cell.CallCount is left on 2 so we can distinguish cells refering to a cycle and the cycle itself in GetCellValue method
+                // GetCellValue then clears cell.CallCount (because we know one cell is in one cycle max according to the task specification).                 
+                return (newCycleFoundSymbol + errorReferenceCycle);
+            }
+
+
+            string[] operandsText;
+            char operation = '?';   // We don't know yet but need to inicialize.
+            bool operatorFound = false;
+
+            // Searching for the operator.
+            foreach (char op in operators)  // Operators is a list of all valid operators in a formula.
+            {
+                operatorFound = cell.Value.Contains(op.ToString());
+                if (operatorFound)
+                {
+                    operation = op;
+                    break;
+                }
+            }
+            // No operator found.
+            if (!operatorFound)
+            {
+                return errorMissingFormulaOperator;
+            }
+
+            // found == true (we have a valid operator called operation):
+            operandsText = cell.Value.Split(operation); // operandsText == string[2]
+
+            // Integer values of operands:
+            int[] operands = new int[2];
+
+            for (byte k = 0; k <= 1; k++)
+            {
+                if (k == 0)
+                {
+                    operandInfo = DecodeCellLocation(sheet, operandsText[k].Remove(0, 1));   // Removing '='
+                }
+                else   // k == 1
+                {
+                    operandInfo = DecodeCellLocation(sheet, operandsText[k]);
+                }
+
+                if (operandInfo.Item1 == null && operandInfo.Item2 == int.MaxValue && operandInfo.Item3 == int.MaxValue)
+                {
+                    return errorCalculation;
+                }
+                else if (operandInfo.Item1 == null && operandInfo.Item2 == int.MinValue && operandInfo.Item3 == int.MinValue)
+                {
+                    return errorFormulaInvalidOperands;
+                }
+                else
+                {
+                    Sheet usedSheet = operandInfo.Item1;
+                    EvaluateCell(usedSheet, operandInfo.Item2, operandInfo.Item3);
+                    operands[k] = GetCellValue(usedSheet, operandInfo.Item2, operandInfo.Item3);
+                    // Do not clear the cell.CallCount before this spot! It's used to distinguish a cycle from a calculation error.
+                }
+            }
+
+            // Something's wrong.
+            if (operands[0] == int.MaxValue || operands[1] == int.MaxValue)
+            {
+                // Cell is a part of a cycle.
+                return errorReferenceCycle;
+            }
+
+
+            if (operands[0] == int.MinValue || operands[1] == int.MinValue)
+            {
+                // First cell of a cycle. (Needed because recursion would cause the cell.Value to change, altough cell.Evaluated == true, becuase it's already in the EvaluateCell(...) method, point 3).
+                if (cell.CallCount >= 2)
+                {
+                    return errorReferenceCycle;
+                }
+                // Invalid values in at least one operand (like string, reference to a cycle, reference to other error, etc.).
+                return errorCalculation;
+            }
+
+
+            /* Format:
+            foreach (char op in operation)
+            {
+                ...
+            }
+            */
+            // Valid operations.
+            switch (operation)
+            {
+                case '+':
+                    return (operands[0] + operands[1]).ToString();
+                case '-':
+                    return (operands[0] - operands[1]).ToString();
+                case '*':
+                    return (operands[0] * operands[1]).ToString();
+                case '/':
+                    // Division by 0 is invalid operation.
+                    if (operands[1] == 0)
+                    {
+                        return errorDivisionByZero;
+                    }
+                    return (operands[0] / operands[1]).ToString();
+                default:
+                    throw new Exception("Unhandled operation in formula evaluating.");
+            }
+
+            throw new Exception("Unhandled exception in formula evaluating.");
+        }
+
+
+
+        public void EvaluateCell(Sheet mainSheet, int row, int column)
+        {
+            // 0) Not defined. (Not to be evaluated.)
+            if (row >= mainSheet.Cells.Count || column >= mainSheet.Cells[row].Count)
+            {
+                return;
+            }
+
+            Cell cell = mainSheet.Cells[row][column];
+
+            // 1) Already done.
+            if (cell.Evaluated)
+            {
+                return;
+            }
+
+            // 2) Not to be changed.
+            if (cell.Value == EmptyCell.emptyCellSymbol || int.TryParse(cell.Value, out int res))
+            {
+                cell.Evaluated = true;
+                return;
+            }
+
+            // 3) Potencial formula.
+            if (cell.Value.StartsWith(FormulaCell.formulaStart.ToString()))
+            {
+                // For cycles like (A1) =A1+A2 the cell.Value and cell.Evaluated are "changed" twice. (Second time doesn't change the values.
+                // Second "change": "#CYCLE" = "#CYCLE", true = true.
+                cell.Value = GetFormulaResult(mainSheet, row, column);
+                cell.Evaluated = true;
+
+                // DELETE !!!
+                /*for (int i = 0; i < errors.Length; i++)     // Should be able to start from 1.
+                {
+                    if (cell.Value == errors[i])
+                    {
+                        mainSheet.Cells[row][column] = errorSheet.Cells[0][i];  // Getting rid of an unnecessary cell.
+                    }
+                }*/               
+                return;
+            }
+
+            // 4) Something else (string, cell reference).
+            mainSheet.Cells[row][column] = errorSheet.Cells[0][0];  // errorInvalidValue is the first element of errorSheet.
+            // sheet.Cells[row][column].Evaluated == true;  // Error cells are already Evaluated.
+        }
+
+        /// <summary>
+        /// Modifies all (or some) cells in a sheet.
+        /// After calling this method on a sheet, all cells in the sheet will have property Evaluated set to true.
+        /// Changes all formulas to their results (if calculatable), detects invalid cell values, cycles, invalid formulas, division by 0.
+        /// If a formula cannot be calculated or there are any other invalid values, an error will be displayed in the cell.
+        /// Format of an error: "#..."
+        /// If you intend to evaluate the whole sheet which is not freshly created, set the clearFirst parameter to true.
+        /// Note: Only cells with their Evaluated property set to false will be evaluated in your sheet.
+        /// (Note: For freshly created sheets it's faster to set the clearFirst parameter to false, since all cells' Evaluated values are implicitly false.)
+        /// </summary>
+        /// <param name="sheet">Sheet you want to be evaluated.</param>
+        /// <param name="clearFirst">True: the property Evaluated will be set on false for all the cells in the sheet. False: the property won't be changed.</param>
+        public void EvaluateSheet(Sheet sheet, bool clearFirst)
+        {
+            // Note: Type long is used only to prevent an infinite cycle. Variables i, j will be always convertable to int without losing information in the cycle's body.
+            if (clearFirst)
+            {
+                for (long i = 0; i < sheet.Cells.Count; i++)
+                {
+                    for (long j = 0; j < sheet.Cells[(int)i].Count; j++)
+                    {
+                        sheet.Cells[(int)i][(int)j].Evaluated = false;
+                        sheet.Cells[(int)i][(int)j].CallCount = 0;
+                    }
+                }
+            }
+
+            // Note: Type long is used only to prevent an infinite cycle. Variables i, j will be always convertable to int without losing information in the cycle's body.
+            for (long i = 0; i < sheet.Cells.Count; i++)
+            {
+                for (long j = 0; j < sheet.Cells[(int)i].Count; j++)
+                {
+                    if (!sheet.Cells[(int)i][(int)j].Evaluated)
+                    {
+                        EvaluateCell(sheet, (int)i, (int)j);
+                        sheet.Cells[(int)i][(int)j].CallCount = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            const string argError = "Argument Error";
+            const string fileError = "File Error";
+
+            if (args.Length != 2)
+            {
+                Console.WriteLine(argError);
+                return;
+            }
+            // Task specification.
+            string pathIn = args[0];
+            string pathOut = args[1];
+            Sheet mainSheet;
+
+            try
+            {
+                using (StreamReader streamReader = new StreamReader(pathIn))
+                {
+                    SheetReader sheetReader = new SheetReader();
+                    mainSheet = sheetReader.GetSheet(streamReader);
+                }
+            }
+            catch (IOException)
+            {
+                Console.WriteLine(fileError);
+                return;
+            }
+
+            EvaluationClass evaluationClass = new EvaluationClass(pathIn, mainSheet);
+            evaluationClass.EvaluateSheet(mainSheet, false);    // Clearing is not needed since the sheet has just been created.
+
+            try
+            {
+                using (StreamWriter streamWriter = new StreamWriter(pathOut))
+                {
+                    SheetWriter sheetWriter = new SheetWriter();
+                    sheetWriter.PrintSheet(mainSheet, streamWriter);
+                }
+            }
+            catch (IOException)
+            {
+                Console.WriteLine(fileError);
+            }
+        }
+    }
+}

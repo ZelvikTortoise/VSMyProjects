@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E59B436C-5C68-4DBD-BC9C-02203669F9DF}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ŠárkaKvíz</RootNamespace>
+    <AssemblyName>ŠárkaKvíz</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>2.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Ikona.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ŠárkaKvíz.Program</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FormHighScore.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormHighScore.Designer.cs">
+      <DependentUpon>FormHighScore.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormKonec.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormKonec.Designer.cs">
+      <DependentUpon>FormKonec.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormMixQuiz.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMixQuiz.Designer.cs">
+      <DependentUpon>FormMixQuiz.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormOsobnosti.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormOsobnosti.Designer.cs">
+      <DependentUpon>FormOsobnosti.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormSubmiting.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormSubmiting.Designer.cs">
+      <DependentUpon>FormSubmiting.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormUrčitáOsobnost.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormUrčitáOsobnost.Designer.cs">
+      <DependentUpon>FormUrčitáOsobnost.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormWelcoming.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormWelcoming.Designer.cs">
+      <DependentUpon>FormWelcoming.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormDividing.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormDividing.Designer.cs">
+      <DependentUpon>FormDividing.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Osobnost.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Věc.cs" />
+    <EmbeddedResource Include="FormHighScore.resx">
+      <DependentUpon>FormHighScore.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormKonec.resx">
+      <DependentUpon>FormKonec.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormMixQuiz.resx">
+      <DependentUpon>FormMixQuiz.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormOsobnosti.resx">
+      <DependentUpon>FormOsobnosti.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSubmiting.resx">
+      <DependentUpon>FormSubmiting.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormUrčitáOsobnost.resx">
+      <DependentUpon>FormUrčitáOsobnost.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormWelcoming.resx">
+      <DependentUpon>FormWelcoming.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormDividing.resx">
+      <DependentUpon>FormDividing.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Amber new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Background %28dividing form%29 new 2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Ikona.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Welcome.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Share new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bow new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Emilie new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Jaykie new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Jenny new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Juliet new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Šárka new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cigarety.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\High Score new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Knížky.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Minecraft.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Panda.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Brýle ne.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Hauština.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Kůň.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Lama.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Ikona.ico" />
+    <None Include="Resources\Buldozer.png" />
+    <None Include="Resources\Auto.png" />
+    <None Include="Resources\Lost.wav" />
+    <None Include="Resources\Fanfáry new.wav" />
+    <None Include="Resources\Citát sobecká mrdka.png" />
+    <None Include="Resources\Citát pičovina.png" />
+    <None Include="Resources\Věšení za nohu.png" />
+    <None Include="Resources\Deník.png" />
+    <None Include="Resources\Holo.png" />
+    <None Include="Resources\Tiger.png" />
+    <None Include="Resources\Mléko.png" />
+    <None Include="Resources\Bubble bum.png" />
+    <None Include="Resources\Ochránce přírody new.png" />
+    <None Include="Resources\Kočky.png" />
+    <None Include="Resources\Levandule.png" />
+    <None Include="Resources\Smutek.png" />
+    <None Include="Resources\Bisexuál %28vlajka%29.png" />
+    <None Include="Resources\Homosexuál %28vlajka%29.png" />
+    <None Include="Resources\Asexuál %28vlajka%29.png" />
+    <None Include="Resources\Asociál.png" />
+    <None Include="Resources\Khaki barva.png" />
+    <None Include="Resources\Zpěv ne.png" />
+    <None Include="Resources\Cimbálka.png" />
+    <None Include="Resources\Databáze Max.png" />
+    <None Include="Resources\Plavání.png" />
+    <None Include="Resources\Longboard.png" />
+    <None Include="Resources\Pennyboard.png" />
+    <None Include="Resources\Růžová barva.png" />
+    <None Include="Resources\Fialová barva.png" />
+    <None Include="Resources\Černá barva.png" />
+    <None Include="Resources\Potlesk.wav" />
+    <None Include="Resources\Ilumináti.wav" />
+    <None Include="Resources\Hudba.png" />
+    <None Include="Resources\Pinkie Pie.png" />
+    <None Include="Resources\Bílá.png" />
+    <None Include="Resources\Bell new.png" />
+    <None Include="Resources\Pan Meloun.png" />
+    <None Include="Resources\Claire new.png" />
+    <None Include="Resources\Simíci.png" />
+    <None Include="Resources\Abstinent.png" />
+    <None Include="Resources\Lenost.png" />
+    <None Include="Resources\Úklid.png" />
+    <None Include="Resources\Práce.png" />
+    <None Include="Resources\Plyšáci.png" />
+    <None Include="Resources\Bro.png" />
+    <None Include="Resources\Statek.png" />
+    <None Include="Resources\Šňupací tabák.png" />
+    <None Include="Resources\Síťované oblečení.png" />
+    <None Include="Resources\Snapback.png" />
+    <None Include="Resources\Béžová barva.png" />
+    <None Include="Resources\Čaj o páté new.png" />
+    <None Include="Resources\Šaty.png" />
+    <None Include="Resources\Lak na nehty.png" />
+    <None Include="Resources\Budík.png" />
+    <None Include="Resources\Posilování.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

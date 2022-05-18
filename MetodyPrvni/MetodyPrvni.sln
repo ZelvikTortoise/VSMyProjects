@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetodyPrvni", "MetodyPrvni\MetodyPrvni.csproj", "{9300338E-3BBC-4E55-BBE9-DB64B35A7559}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9300338E-3BBC-4E55-BBE9-DB64B35A7559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9300338E-3BBC-4E55-BBE9-DB64B35A7559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9300338E-3BBC-4E55-BBE9-DB64B35A7559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9300338E-3BBC-4E55-BBE9-DB64B35A7559}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {01A48A5E-E145-4CBF-ADC0-1D448ABA6F2F}
+	EndGlobalSection
+EndGlobal
