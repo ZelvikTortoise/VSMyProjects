@@ -30,8 +30,11 @@ namespace QuestionRandomizer
                         questionNumbers.Add(currentAmount);
                     }
                 }
-                Console.WriteLine("Questions are now loaded.");
                 Console.WriteLine();
+                Console.WriteLine("Questions were successfully loaded!");
+                Console.Write("Press any key to start randoming... ");
+                Console.ReadKey();
+                Console.Clear();
                 Console.WriteLine("STARTING RANDOM GENERATION with {0} total questions:", currentAmount);
 
                 int questionNumber;
@@ -41,6 +44,10 @@ namespace QuestionRandomizer
                     Console.ForegroundColor = highlightColor;
                     Console.WriteLine("I randomly selected a question number {0}.", questionNumber);
                     Console.ForegroundColor = normalColor;
+                    if (questionNumbers.Count > 1)
+                        Console.WriteLine("There are still {0} other questions loaded.", questionNumbers.Count - 1);
+                    else
+                        Console.WriteLine("There is still 1 other question loaded.");
                     end = !AskIfNext();
                 }
                 if (questionNumbers.Count > 0 && !end)
@@ -52,7 +59,7 @@ namespace QuestionRandomizer
                 }
                 if (questionNumbers.Count == 0)
                 {
-                    Console.WriteLine("All questions were used...");
+                    Console.WriteLine("All questions were asked...");
                 }
                 Console.WriteLine("Exiting...");
             }
@@ -71,11 +78,14 @@ namespace QuestionRandomizer
                         questions.Add(line);
                     }
                 }
-                Console.WriteLine("Questions are now loaded.");
                 Console.WriteLine();
+                Console.WriteLine("Questions were successfully loaded!");
+                Console.Write("Press any key to start randoming... ");
+                Console.ReadKey();
+                Console.Clear();
                 Console.WriteLine("STARTING RANDOM GENERATION with {0} total questions:", currentAmount);
 
-                string question;                
+                string question;
                 while (questions.Count > 1 && !end)
                 {
                     question = PickQuestion(questions);
@@ -83,6 +93,10 @@ namespace QuestionRandomizer
                     Console.ForegroundColor = highlightColor;
                     Console.WriteLine(question);
                     Console.ForegroundColor = normalColor;
+                    if (questions.Count > 1)
+                        Console.WriteLine("There are still {0} other questions loaded.", questions.Count);
+                    else
+                        Console.WriteLine("There is still 1 other question loaded.");
 
                     end = !AskIfNext();
                 }
@@ -97,7 +111,7 @@ namespace QuestionRandomizer
                 }
                 if (questions.Count == 0)
                 {
-                    Console.WriteLine("All questions were used...");
+                    Console.WriteLine("All questions were asked...");
                 }
                 Console.WriteLine("Exiting...");
             }
@@ -150,6 +164,8 @@ namespace QuestionRandomizer
 
         static void Main(string[] args)
         {
+            ConsoleColor normalColor = Console.ForegroundColor;
+            const ConsoleColor highlightColor = ConsoleColor.Red;   // highlight is red
             const string path = @"questions.txt";
             bool first = true;
             string? answer = "";
@@ -188,9 +204,23 @@ namespace QuestionRandomizer
                     RandomQuestions(Console.In, false);
                     break;
                 case "2":
+                    while (!File.Exists(path))
+                    {
+                        Console.WriteLine("Missing input file!");
+                        Console.Write("Please create the input file ");
+                        Console.ForegroundColor = highlightColor;
+                        Console.Write(path);
+                        Console.ForegroundColor = normalColor;
+                        Console.WriteLine(" or move it to the directory with the .exe file.");
+                        Console.Write("When you are ready, press any key to continue... ");
+                        Console.ReadKey();
+                        Console.WriteLine();
+                        Console.WriteLine("Trying again...");
+                        Console.WriteLine();
+                    }
                     using (StreamReader sr = new StreamReader(path))
                     {
-                        Console.WriteLine("Using a file with path {0} to pick questions to random from...", path);
+                        Console.WriteLine("Using an input file with the path {0} to pick questions to random from...", path);
                         RandomQuestions(sr, false);
                     }
                     break;
