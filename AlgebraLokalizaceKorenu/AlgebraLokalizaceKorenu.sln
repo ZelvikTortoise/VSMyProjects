@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlgebraLokalizaceKorenu", "AlgebraLokalizaceKorenu\AlgebraLokalizaceKorenu.csproj", "{FDF4E84D-694C-475F-A52A-0D421B6C9B1D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDF4E84D-694C-475F-A52A-0D421B6C9B1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDF4E84D-694C-475F-A52A-0D421B6C9B1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDF4E84D-694C-475F-A52A-0D421B6C9B1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDF4E84D-694C-475F-A52A-0D421B6C9B1D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44866AE8-0D0E-4B07-AC24-CB2E03900675}
+	EndGlobalSection
+EndGlobal
