@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="01_Declaration.cs" />
+    <Compile Remove="02_Static.cs" />
+    <Compile Remove="03_Constructors.cs" />
+    <Compile Remove="03_Properties.cs" />
+    <Compile Remove="04_Constructors.cs" />
+    <Compile Remove="04_Properties.cs" />
+    <Compile Remove="05_Inheritance.cs" />
+    <Compile Remove="06_Operators.cs" />
+    <Compile Remove="07_VirtualMethods.cs" />
+    <Compile Remove="08_Interfaces.cs" />
+    <Compile Remove="Program.cs" />
+  </ItemGroup>
+
+</Project>

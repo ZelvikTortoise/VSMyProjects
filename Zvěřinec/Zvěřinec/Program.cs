@@ -42,7 +42,7 @@ namespace Zvěřinec
 
         protected Zvíře(string jméno)
         {
-            this.Jméno = jméno; // Řešímě problém s readonly.
+            this.Jméno = jméno; // Řešíme problém s readonly.
         }
     }
 
@@ -136,7 +136,7 @@ namespace Zvěřinec
                 Console.WriteLine(zvíře.Hmotnost == 0 ? "Bohužel neznáme jeho hmotnost." : "Má hmotnost {0} kg.", zvíře.Hmotnost);
                 Console.WriteLine("Takto skáče, když je {0}:", nameof(Zvíře));
                 zvíře.Skoč();                
-                if (zvíře is Pes)   // Jinak taky zvíře.GetType() == typeof(Pes).
+                if (zvíře is Pes)   // Jinak taky zvíře.GetType() == typeof(Pes) ... is bere celý podstrom.
                 {
                     Console.WriteLine("Takto skáče, když je {0}:", nameof(Pes));
                     ((Pes)zvíře).Skoč();    // Explicitní konverze. (Víme už, že je typu Pes.)
