@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33103.184
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STinovePosloupnosti", "STinovePosloupnosti\STinovePosloupnosti.csproj", "{950285BB-0F58-4B85-ABD3-7FBB5180767F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{950285BB-0F58-4B85-ABD3-7FBB5180767F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{950285BB-0F58-4B85-ABD3-7FBB5180767F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{950285BB-0F58-4B85-ABD3-7FBB5180767F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{950285BB-0F58-4B85-ABD3-7FBB5180767F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A1DB50F0-43D8-46AD-9C0B-8E5D1DAAE9FD}
+	EndGlobalSection
+EndGlobal
