@@ -95,9 +95,16 @@ namespace STinovePosloupnosti
                 }
             }
 
+            // Implementation error!
+            /*
+            if (S == 16 && (n == 16 || n == 30))
+            {
+                Console.WriteLine();
+            }*/
+
             int sStriped = 1 + (S - 1) / 10;
             int rem = (n - sStriped) % (S - sStriped) + sStriped;
-            int exp = (n - 1) / (S - 1) + this.XSMinus1;
+            int exp = (n - 1) / (S - 1) + this.XSMinus1;    // What's wrong?
             long divident = rem;
 
             checked
@@ -205,6 +212,7 @@ namespace STinovePosloupnosti
                     end = true;
             }
             while (!end);
+            Console.Write("Press any key to exit the program... ");
 
             Console.ReadKey();
 
