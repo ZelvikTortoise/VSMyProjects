@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Linq;
 
 namespace QuestionRandomizer
 {
@@ -14,6 +15,7 @@ namespace QuestionRandomizer
             ConsoleColor normalColor = Console.ForegroundColor;
             const ConsoleColor highlightColor = ConsoleColor.Red;   // highlight is red
             bool end = false;
+            bool save = false;
 
             if (justNumbers)
             {
@@ -48,7 +50,7 @@ namespace QuestionRandomizer
                         Console.WriteLine("There are still {0} other questions loaded.", questionNumbers.Count - 1);
                     else
                         Console.WriteLine("There is still 1 other question loaded.");
-                    end = !AskIfNext();
+                    end = !AskIfNext(ref save, true);
                 }
                 if (questionNumbers.Count > 0 && !end)
                 {
@@ -57,6 +59,7 @@ namespace QuestionRandomizer
                     Console.WriteLine("I randomly selected a question number {0}.", questionNumber);
                     Console.ForegroundColor = normalColor;
                 }
+                // No saving implemented.
                 if (questionNumbers.Count == 0)
                 {
                     Console.WriteLine("All questions were asked...");
@@ -98,7 +101,7 @@ namespace QuestionRandomizer
                     else
                         Console.WriteLine("There is still 1 other question loaded.");
 
-                    end = !AskIfNext();
+                    end = !AskIfNext(ref save, false);
                 }
 
                 if (questions.Count > 0 && !end)
@@ -108,6 +111,11 @@ namespace QuestionRandomizer
                     Console.ForegroundColor = highlightColor;
                     Console.WriteLine(question);
                     Console.ForegroundColor = normalColor;
+                }
+                if (questions.Count > 0 && save)
+                {
+                    Console.WriteLine();
+                    SaveRemainingQuestions(questions);
                 }
                 if (questions.Count == 0)
                 {
@@ -121,9 +129,16 @@ namespace QuestionRandomizer
         /// Some output.
         /// </summary>
         /// <returns>Continue?</returns>
-        private static bool AskIfNext()
+        private static bool AskIfNext(ref bool save, bool justNumbers)
         {
-            Console.WriteLine("Do you want to exit? (y / yes / a / ano = exit, otherwise = next question)");
+            if (justNumbers)
+            {
+                Console.WriteLine("Do you want to exit? (y / yes / a / ano = exit, otherwise = next question)");
+            }
+            else
+            {
+                Console.WriteLine("Do you want to exit? (y / yes / a / ano = exit without save, s / save / u / ulozit = exit with save, otherwise = next question)");
+            }            
             Console.Write("Your answer: ");
             string? answer = Console.ReadLine();
             if (!string.IsNullOrEmpty(answer))
@@ -132,6 +147,11 @@ namespace QuestionRandomizer
             }
             if (answer == "y" || answer == "yes" || answer == "a" || answer == "ano")
             {
+                return false;
+            }
+            else if (!justNumbers && (answer == "s" || answer == "save" || answer == "u" || answer == "ulozit"))
+            {
+                save = true;
                 return false;
             }
             else
@@ -160,6 +180,68 @@ namespace QuestionRandomizer
             questions.RemoveAt(questionIndex);
 
             return question;
+        }
+
+        private static void SaveRemainingQuestions(List<string> questions)
+        {
+            const string path = @"questions - save";
+            const string suffix = @".txt";
+            string pathOut = path + suffix;
+            bool overwrite = false;
+            bool answered = false;
+            
+            if (File.Exists(pathOut))
+            {                
+                while (!answered)
+                {
+                    Console.WriteLine("The file called \"{0}\" already exists.\nDo you want to overwrite it? (y / yes / a / ano = overwrite, n / no / ne = new file)", pathOut);
+                    Console.Write("Your answer: ");
+                    string? answer = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(answer))
+                    {
+                        answer = answer.ToLower();
+                    }
+                    if (answer == "y" || answer == "yes" || answer == "a" || answer == "ano")
+                    {
+                        overwrite = true;
+                        Console.WriteLine("The file \"{0}\" will be overwritten.", pathOut);
+                        answered = true;
+                    }
+                    else if (answer == "n" || answer == "no" || answer == "ne")
+                    {
+                        Console.WriteLine("Generating a new file...");
+                        answered = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid answer. Repeating process...");
+                        Console.WriteLine();
+                    }
+                }     
+                
+                if (!overwrite)
+                {
+                    // File name format: questions - save2.txt (etc.)
+                    int k = 2;
+                    do
+                    {
+                        pathOut = path + k.ToString() + suffix;
+                        k++;
+                    }
+                    while (File.Exists(pathOut));
+                }
+                // else: overwrite == true ... same as generating a new file, i.e. pathOut stays the same.
+            }
+
+            // File doesn't exist or should be overwritten:            
+            Console.WriteLine("Saving the remaining questions to a file called \"{0}\".", pathOut);
+            using (StreamWriter sw = new StreamWriter(pathOut))
+            {
+                foreach (string question in questions)
+                {
+                    sw.WriteLine(question);
+                }
+            }
         }
 
         static void Main(string[] args)
