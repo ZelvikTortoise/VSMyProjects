@@ -35,7 +35,7 @@ namespace KombinatorikaGenerovani
                         cislo[pozice] = i;
                         zbyva[i - 1]--; // Použili jsme číslici.
                         VBO(pozice + 1);
-                        zbyva[i - 1]++; // Nezapomenout – v jiné větvi číslici nepoužíváme.
+                        zbyva[i - 1]++; // Nezapomenout – v jiné větvi číslici nepoužíváme. // = backtracking
                     }                    
                 }
             }
@@ -148,7 +148,7 @@ namespace KombinatorikaGenerovani
                         cislo[pozice] = i;
                         zbyva[i - 1]--; // Použili jsme číslici.
                         PSO(pozice + 1);
-                        zbyva[i - 1]++; // Nezapomenout – v jiné větvi tohoto větvení číslici na této pozici nepoužíváme.
+                        zbyva[i - 1]++; // Nezapomenout – v jiné větvi tohoto větvení číslici na této pozici nepoužíváme. // = backtracking
                     }
                 }
             }
