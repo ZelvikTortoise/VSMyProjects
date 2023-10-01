@@ -26,7 +26,7 @@ namespace GenerovaniElemPermutaci
             {
                 this.Elps = reduced;
             }
-            this.SetNumOfInversions();
+            this.SetNumOfInversions();      // BREAK POINT HERE to see what's being added.
         }
 
         private static int Previous(int[] elements, int fromIndex, int stepSize)
@@ -46,7 +46,7 @@ namespace GenerovaniElemPermutaci
             else
             {
                 // Searching for the first non-zero element to the left of fromIndex including fromIndex:
-                index = Math.Max(0, fromIndex - stepSize + 1);
+                index = 0;
                 while (index <= fromIndex && elements[index] == 0)
                 {
                     index++;
@@ -133,8 +133,21 @@ namespace GenerovaniElemPermutaci
         /// <returns>Does the "bab" rule apply?</returns>
         private static bool DoesRule3Apply(int first, int second, int third)
         {
-            // TODO: MAIN PROBLEM – HAS TO APPLY EVEN WHEN ac TO FIND "cbca" -> "bcba". :-(
+            // Problem: has to switch "ac" in "cbac" to find reduction to "bcba".
+            // => Added rule 4 (called the "cbac" order rule).
             return first == second + 1 && first == third;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="first"></param>
+        /// <param name="second"></param>
+        /// <param name="third"></param>
+        /// <param name="fourth"></param>
+        /// <returns>Does the "cbac" order rule apply?</returns>
+        private static bool DoesRule4Apply(int first, int second, int third, int fourth)
+        {
+            return first == fourth && second == third + 1 && third == fourth - 2;
         }
         /// <summary>
         /// Tries to reduce the permutation in two ways:
@@ -145,12 +158,12 @@ namespace GenerovaniElemPermutaci
         /// <returns>Was the permutation changed (reduced or changed order)?</returns>
         public bool Reducable(out int[] reducedPermElements)
         {           
-            reducedPermElements = this.Elps;  // Creating a copy. (Hopefully.)
-            int i = 0;
+            reducedPermElements = this.Elps;  // Not creating a copy. (I would like to, but it's handled, hopefully, in the constructor of the Perm class.)
+            int i = Perm.Previous(reducedPermElements, 0, 1);   // Needed for numbers starting with more zeroes like (0, 0, 1, 1, 3) etc.
             int j = Perm.Next(reducedPermElements, i, 1, false);
             int k;
             bool wasChanged = false;
-            int temp;
+            int temp;            
 
             // Ways to exit the while-loop:
             // 1. i == -1 => we found or reduced to identity (id)
@@ -161,7 +174,7 @@ namespace GenerovaniElemPermutaci
             // j == -2 means it's time to exit the loop (nothing to reduce)
             // j will never be -1 because it's never called by the Previous function
             while (j > 0)
-            {                
+            {
                 if (Perm.DoesRule1Apply(reducedPermElements[i], reducedPermElements[j]))
                 {
                     reducedPermElements[i] = 0;
@@ -172,6 +185,10 @@ namespace GenerovaniElemPermutaci
                     i = Perm.Previous(reducedPermElements, i, 1);
                     if (i >= 0)
                     {
+                        // We need to move by 1 but sometimes by 2!
+                        // Trying to move by 2 if possible.
+                        // i cannot be < 0 because Previous returns either >= 0 or -1 iff we have identity, which we already know we don't have.
+                        i = Perm.Previous(reducedPermElements, i, 1);
                         j = Perm.Next(reducedPermElements, i, 1, false);
                     }
                     else
@@ -187,18 +204,14 @@ namespace GenerovaniElemPermutaci
 
                     wasChanged = true;
 
-                    i = Perm.Previous(reducedPermElements, i, 2);  // We can move left by 2 instead of just 1.
-                    if (i >= 0)
-                    {
-                        j = Perm.Next(reducedPermElements, i, 1, false);
-                    }
-                    else
-                    {
-                        break;  // EXITING loop, ended in identity (id) => nothing to reduce.
-                    }
+                    // i = Perm.Previous(reducedPermElements, i, 2);  // We can move left by 2 instead of just 1.
+                    i = Perm.Previous(reducedPermElements, i, 1);   // First move.
+                    // i >= 0 because we cannot create identity (id) from non-identity just by switching positions of two elements.
+                    i = Perm.Previous(reducedPermElements, i, 1);   // Second move.
+                    j = Perm.Next(reducedPermElements, i, 1, false);
                 }
                 else
-                {
+                { 
                     k = Perm.Next(reducedPermElements, j, 1, false);
                     if (k < 0)  // Can be changed to < 2 but then would be confusing because in these cases, always k == -2.
                     {
@@ -212,11 +225,28 @@ namespace GenerovaniElemPermutaci
 
                         wasChanged = true;
 
-                        i = Perm.Previous(reducedPermElements, i, 2);   // We have to move left by 2 (abaCbc -> abAbcb => it wouldn't find aBabcb).
+                        // We have to move left by 2 if possible (abaCbc -> abAbcb => it wouldn't find aBabcb).
+                        i = Perm.Previous(reducedPermElements, i, 1);   // First move.
+                        i = Perm.Previous(reducedPermElements, i, 1);   // Second move.
+
+                        // i = Perm.Previous(reducedPermElements, i, 2);   // Both moves at the same time.
+                        // ^ DOESN'T WORK BECAUSE OF SITUATIONS LIKE (2, 1, 0, 2, 3, 2) WHERE i HAS TO MOVE FROM i = 3 TO i = 0, BUT IT ONLY MOVES TO i = 1.
+
                         // Now: i is either to the left of i in the previous step, or is exactly the same as before.
                         // => i >= 0.
                         j = Perm.Next(reducedPermElements, i, 1, false);
                         // => j > 0.
+                    }
+                    else if (Perm.DoesRule4Apply(reducedPermElements[Perm.Previous(reducedPermElements, i, 1)], reducedPermElements[i], reducedPermElements[j], reducedPermElements[k]))
+                    {
+                        temp = reducedPermElements[j];
+                        reducedPermElements[j] = reducedPermElements[k];
+                        reducedPermElements[k] = temp;
+
+                        wasChanged = true;
+
+                        i = Perm.Previous(reducedPermElements, i, 1);
+                        j = Next(reducedPermElements, i, 1, false);
                     }
                     else   // No rules apply.
                     {
@@ -275,7 +305,7 @@ namespace GenerovaniElemPermutaci
 
             // Add.
             if (adding)
-            {
+            {                
                 Perm.perms.Add(permString);
             }
 
@@ -475,10 +505,21 @@ namespace GenerovaniElemPermutaci
                 for (int i = digit + 1; i < MaxInvs; i++)
                 {
                     elps[i] = 0;
-                }                
+                }
 
-                if (Perm.TryAddToPerms(new Perm(elps)))
+                Perm perm = new(elps);
+                // TODO: MAIN PROBLEM = DUE TO NOT USING REDUCTION WHILE GENERATING, THE ARRAY IS TOO SMALL FOR SOME PERMUTATIONS!
+                // TODO: Because of this, some branches cannot be generated, eg.: ababc (= bac) -> ababca (= bc ... exists) | ababcb (= aba ... exists) | ababcc (= ba ... exists).
+                /*// Changing to reduced version (redundant?):
+                for (int i = 0; i < elps.Length; i++)
                 {
+                    elps[i] = perm.Elps[i];
+                    // PROBLEM: This would overwrite other branches.
+                    // Example: (1, 1, 0, 0) -> reduction: (0, 0, 0, 0) -> next i: (0, 2, 0, 0) instead of (1, 2, 0, 0).
+                }
+                digit = perm.NumOfInversions - 1;*/
+                if (Perm.TryAddToPerms(perm))
+                {                                       
                     for (int i = 1; i <= MaxElp; i++)
                     {
                         // Recursion:
@@ -488,20 +529,37 @@ namespace GenerovaniElemPermutaci
             }
         }
         static void Generate()
-        {
+        {            
             int[] elps = new int[MaxInvs];
-            Perm perm = new(elps);
-            // Changing to reduced version (redundant?):
-            for (int i = 0; i < elps.Length; i++)
-            {
-                elps[i] = perm.Elps[i];
-            }
-            Perm.TryAddToPerms(perm);   // Adding id.
+            Perm.TryAddToPerms(new(elps));   // Adding id.
             for (int i = 1; i <= MaxElp; i++)
             {
                 DFS(elps, 0, i);
-            }            
+            }
         }
+
+        static void VSO(int[] elps, int digit)
+        {
+            if (digit == Program.MaxInvs)
+            {
+                Perm.TryAddToPerms(new Perm(elps));
+            }
+            else
+            {
+                for (int i = 0; i <= Program.MaxElp; i++)
+                {
+                    elps[digit] = i;
+                    VSO(elps, digit + 1);
+                }
+            }
+        }
+
+        static void Generate2()
+        {
+            int[] elps = new int[MaxInvs];
+            VSO(elps, 0);
+        }
+
         static void Show(TextWriter writer, bool onePerLine)
         {
             if (writer == Console.Out)
@@ -531,7 +589,7 @@ namespace GenerovaniElemPermutaci
             }
             Console.WriteLine("Chcete permutace vygenerovat do konzole, nebo do souboru?");
             Console.WriteLine("1 - konzole");
-            Console.WriteLine("2 - souhor");
+            Console.WriteLine("2 - soubor");
             Console.WriteLine("? - konzole");
             Console.WriteLine();
             Console.Write("Vaše odpověď: ");
@@ -551,13 +609,17 @@ namespace GenerovaniElemPermutaci
                 writer = Console.Out;
             }
             Console.WriteLine();
-            Generate();
+            Generate2();    // TODO: CHANGE BACK TO Generate() after fixing it.
             Perm.SortShortlexSlow();
             Show(writer, true);
             Console.WriteLine();
 
             Console.WriteLine("Zmáčkněte libovolnou klávesu pro ukončení programu... ");
             Console.ReadKey();
+
+            // MATH PROBLEM:
+            // S_5, in = 10:
+            // abacbadcba =?= abacbdcbad
         }
     }
 }
