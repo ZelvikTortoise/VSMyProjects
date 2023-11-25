@@ -165,6 +165,11 @@ namespace GenerovaniElemPermutaci
             bool wasChanged = false;
             int temp;            
 
+            // DEBUG – BREAKPOINT
+            if (reducedPermElements[0] == 1 && reducedPermElements[1] == 2 && reducedPermElements[2] == 1 && reducedPermElements[3] == 3 && reducedPermElements[4] == 2 && reducedPermElements[5] == 4 && reducedPermElements[6] == 3 && reducedPermElements[7] == 2 && reducedPermElements[8] == 1 && reducedPermElements[9] == 4)
+            {
+                Console.WriteLine("Let's try.");
+            }
             // Ways to exit the while-loop:
             // 1. i == -1 => we found or reduced to identity (id)
             // 2. j == -2 => nothing to reduce
@@ -303,9 +308,15 @@ namespace GenerovaniElemPermutaci
                 }
             }
 
+            // DEBUG – BREAK POINT:
+            if (permString == "abacbdcbad")
+            {
+                Console.WriteLine("AHA?");
+            }
+
             // Add.
             if (adding)
-            {                
+            {
                 Perm.perms.Add(permString);
             }
 
