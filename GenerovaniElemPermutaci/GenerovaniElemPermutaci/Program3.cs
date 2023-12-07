@@ -9,19 +9,25 @@ namespace GenerovaniElemPermutaci
     {
         public const string elpSymbols = "abcdefghijklmnopqrstuvwxyz";
         private readonly static List<string> perms;
+		private readonly static List<string> permBirths;
         public int[] Elps { get; private set; }
         public int NumOfInversions { get; private set; }
+        public string BirthText { get; }
         static Perm()
         {
             perms = new List<string>();
+            permBirths = new List<string>();
         }
         public Perm(int[] elps)
         {
+            StringBuilder sb = new();
             this.Elps = new int[elps.Length];
             for (int i = 0; i < elps.Length; i++)
             {
                 this.Elps[i] = elps[i];
-            }            
+                sb.Append(elps[i]);
+            }
+            BirthText = sb.ToString();
             NumOfInversions = -1;   // Not valid yet.
             if (this.Reducable(out int[] reduced))
             {
@@ -139,7 +145,7 @@ namespace GenerovaniElemPermutaci
         /// <param name="jumpPotential"></param>
         /// <returns>Does the generalized "bab"/"cbac" rule apply?</returns>
         private static bool DoesRule3Apply(int first, int second, int jumpPotential)
-        {            
+        {
             return second > first && second - first <= jumpPotential;
         }
         /// <summary>
@@ -175,10 +181,10 @@ namespace GenerovaniElemPermutaci
         /// <param name="reducedPerm">Permutation after the reduction.</param>
         /// <returns>Was the permutation changed (reduced or changed order)?</returns>
         public bool Reducable(out int[] reducedPermElements)
-        {           
+        {
             reducedPermElements = this.Elps;  // Not creating a copy. (I would like to, but it's handled, hopefully, in the constructor of the Perm class.)
             int i = Perm.Previous(reducedPermElements, 0, 1);   // Needed for numbers starting with more zeroes like (0, 0, 1, 1, 3) etc.
-            int j = Perm.Next(reducedPermElements, i, 1, false);          
+            int j = Perm.Next(reducedPermElements, i, 1, false);
             int decreasingByOne = 0; // 2 ... cba, 3 ... dcba, etc.; used for DCBAD -> CDCBA rule
             bool wasChanged = false;
             int temp, max, min;
@@ -334,7 +340,7 @@ namespace GenerovaniElemPermutaci
                     decreasingByOne = 0;    // reset;
                 }
                 else   // No rules apply.
-                {                    
+                {
                     if (Perm.DoesSequenceDecreaseByOne(reducedPermElements[i], reducedPermElements[j]))
                     {
                         decreasingByOne++;
@@ -410,20 +416,51 @@ namespace GenerovaniElemPermutaci
             if (adding)
             {
                 Perm.perms.Add(permString);
+                Perm.permBirths.Add(perm.BirthText);
             }
 
             return adding;
         }
+        public static bool NewBirthTextFound(Perm perm)
+        {
+            string permBirthText = perm.BirthText;
+            bool newFound = true;
+
+            for (int i = 0; i < Perm.permBirths.Count; i++)
+            {
+                if (permBirthText == Perm.permBirths[i])
+                {
+                    newFound = false;
+                    break;
+                }
+            }
+
+            if (newFound)
+            {
+                Perm.permBirths.Add(perm.BirthText);
+            }
+
+            return newFound;
+        }
+        public static void ClearAll()
+        {
+            ClearPerms();
+            ClearPermBirths();
+        }
         public static void ClearPerms()
         {
             Perm.perms.Clear();
+        }
+        public static void ClearPermBirths()
+        {
+            Perm.permBirths.Clear();
         }
 
         private static bool IsFirstLexicographicallyGreater(string permString, string perm2String)
         {
             bool greater = false;
 
-            if (permString != perm2String)            
+            if (permString != perm2String)
             {
                 for (int i = 0; i < permString.Length; i++)
                 {
@@ -437,7 +474,7 @@ namespace GenerovaniElemPermutaci
                         break;
                     }
                 }
-            }            
+            }
 
             return greater;
         }
@@ -465,7 +502,7 @@ namespace GenerovaniElemPermutaci
             for (int i = 1; i < Perm.perms.Count; i++)
             {
                 for (int j = 0; j < Perm.perms.Count - i; j++)
-                {                    
+                {
                     if (IsFirstGreaterThanSecond(Perm.perms[j], Perm.perms[j + 1]))
                     {
                         tempPerm = Perm.perms[j];
@@ -523,7 +560,7 @@ namespace GenerovaniElemPermutaci
                     {
                         spaces = spaces.Remove(spaces.Length - 1);   // one less space, because the numbers of inversions use one more digit from now
                     }
-                    Console.WriteLine("#in = {0}{1}{2}", Perm.perms[i].Length, spaces, Perm.perms[i].ToString());                                        
+                    Console.WriteLine("#in = {0}{1}{2}", Perm.perms[i].Length, spaces, Perm.perms[i].ToString());
                 }
             }
             else
@@ -562,7 +599,7 @@ namespace GenerovaniElemPermutaci
                         {
                             spaces = spaces.Remove(spaces.Length - 1);   // one less space, because the numbers of inversions use one more digit from now
                         }
-                        writer.WriteLine("#in = {0}{1}{2}", Perm.perms[i].Length, spaces, Perm.perms[i].ToString());                        
+                        writer.WriteLine("#in = {0}{1}{2}", Perm.perms[i].Length, spaces, Perm.perms[i].ToString());
                     }
                 }
                 else
@@ -610,27 +647,49 @@ namespace GenerovaniElemPermutaci
             MaxInvs = N * (N - 1) / 2;
             MaxElp = N - 1;
         }
-
-        static void VSO(int[] elps, int digit)
+        private static void DFS(int[] elps, int digit, int elpNum)
         {
-            if (digit == Program.MaxInvs)
+            if (digit >= MaxInvs)
             {
-                Perm.TryAddToPerms(new Perm(elps));
+                // The permutation in S_N cannot be a reduced composition of more than maxInvs elementary permutations.
+                // Therefore: End.
+                return;
             }
             else
             {
-                for (int i = 0; i <= Program.MaxElp; i++)
+                // Asigning the digit:
+                elps[digit] = elpNum;
+                // Everything to the right should be zeroes:
+                for (int i = digit + 1; i < MaxInvs; i++)
                 {
-                    elps[digit] = i;
-                    VSO(elps, digit + 1);
+                    elps[i] = 0;
+                }
+
+                Perm perm = new(elps);
+
+                // We're going to generate a new branch from this permutation if and only if
+                // the permutation is completely new (added to our list)
+                // OR
+                // the BirthText of this permutation is new => we haven't been here yet.
+
+                if (Perm.TryAddToPerms(perm) || Perm.NewBirthTextFound(perm))
+                {
+                    for (int i = 1; i <= MaxElp; i++)
+                    {
+                        // Recursion:
+                        DFS(elps, digit + 1, i);
+                    }
                 }
             }
         }
-
         static void Generate()
         {
-            int[] elps = new int[Math.Max(MaxInvs, 1)]; // For id.
-            VSO(elps, 0);
+            int[] elps = new int[MaxInvs];
+            Perm.TryAddToPerms(new(elps));   // Adding id.
+            for (int i = 1; i <= MaxElp; i++)
+            {
+                DFS(elps, 0, i);
+            }
         }
 
         static void Show(TextWriter writer, bool onePerLine)
