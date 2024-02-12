@@ -36,6 +36,7 @@
             this.lblQuestion = new System.Windows.Forms.Label();
             this.btnGenerateQuestion = new System.Windows.Forms.Button();
             this.btnChangeChapter = new System.Windows.Forms.Button();
+            this.btnSelectStudent = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnSelectFile
@@ -120,11 +121,24 @@
             this.btnChangeChapter.Visible = false;
             this.btnChangeChapter.Click += new System.EventHandler(this.btnChangeChapter_Click);
             // 
+            // btnSelectStudent
+            // 
+            this.btnSelectStudent.Font = new System.Drawing.Font("Impact", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.btnSelectStudent.Location = new System.Drawing.Point(312, 198);
+            this.btnSelectStudent.Name = "btnSelectStudent";
+            this.btnSelectStudent.Size = new System.Drawing.Size(162, 51);
+            this.btnSelectStudent.TabIndex = 7;
+            this.btnSelectStudent.Text = "Vyvolat studenta";
+            this.btnSelectStudent.UseVisualStyleBackColor = true;
+            this.btnSelectStudent.Visible = false;
+            this.btnSelectStudent.Click += new System.EventHandler(this.btnSelectStudent_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(814, 261);
+            this.Controls.Add(this.btnSelectStudent);
             this.Controls.Add(this.btnChangeChapter);
             this.Controls.Add(this.btnGenerateQuestion);
             this.Controls.Add(this.lblQuestion);
@@ -152,6 +166,7 @@
         private System.Windows.Forms.Label lblQuestion;
         private System.Windows.Forms.Button btnGenerateQuestion;
         private System.Windows.Forms.Button btnChangeChapter;
+        private System.Windows.Forms.Button btnSelectStudent;
     }
 }
 
