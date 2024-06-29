@@ -46,7 +46,12 @@
             this.buttonRemoveAllFiles = new System.Windows.Forms.Button();
             this.checkBoxGenerateFileNew = new System.Windows.Forms.CheckBox();
             this.buttonExit = new System.Windows.Forms.Button();
+            this.menuStrip = new System.Windows.Forms.MenuStrip();
+            this.možnostiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.oProgramuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ukončitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBoxGenerateFile.SuspendLayout();
+            this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // openFileDialog
@@ -225,6 +230,47 @@
             this.buttonExit.UseVisualStyleBackColor = true;
             this.buttonExit.Click += new System.EventHandler(this.buttonExit_Click);
             // 
+            // menuStrip
+            // 
+            this.menuStrip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.možnostiToolStripMenuItem});
+            this.menuStrip.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip.Name = "menuStrip";
+            this.menuStrip.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.menuStrip.Size = new System.Drawing.Size(540, 24);
+            this.menuStrip.TabIndex = 16;
+            this.menuStrip.Text = "menuStrip1";
+            // 
+            // možnostiToolStripMenuItem
+            // 
+            this.možnostiToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.oProgramuToolStripMenuItem,
+            this.ukončitToolStripMenuItem});
+            this.možnostiToolStripMenuItem.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.možnostiToolStripMenuItem.Margin = new System.Windows.Forms.Padding(0, 0, 10, 0);
+            this.možnostiToolStripMenuItem.Name = "možnostiToolStripMenuItem";
+            this.možnostiToolStripMenuItem.Size = new System.Drawing.Size(69, 20);
+            this.možnostiToolStripMenuItem.Text = "Možnosti";
+            // 
+            // oProgramuToolStripMenuItem
+            // 
+            this.oProgramuToolStripMenuItem.Name = "oProgramuToolStripMenuItem";
+            this.oProgramuToolStripMenuItem.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.oProgramuToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
+            this.oProgramuToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.oProgramuToolStripMenuItem.Text = "O programu";
+            this.oProgramuToolStripMenuItem.Click += new System.EventHandler(this.oProgramuToolStripMenuItem_Click);
+            // 
+            // ukončitToolStripMenuItem
+            // 
+            this.ukončitToolStripMenuItem.Name = "ukončitToolStripMenuItem";
+            this.ukončitToolStripMenuItem.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.ukončitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.W)));
+            this.ukončitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ukončitToolStripMenuItem.Text = "Ukončit";
+            this.ukončitToolStripMenuItem.Click += new System.EventHandler(this.ukončitToolStripMenuItem_Click);
+            // 
             // FormBase
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -244,6 +290,7 @@
             this.Controls.Add(this.labelNumberOfFiles);
             this.Controls.Add(this.labelNumberOfFIlesLabel);
             this.Controls.Add(this.buttonAddFile);
+            this.Controls.Add(this.menuStrip);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -252,6 +299,8 @@
             this.Text = "Hledání RZ obsažené ve všech vybraných souborech";
             this.groupBoxGenerateFile.ResumeLayout(false);
             this.groupBoxGenerateFile.PerformLayout();
+            this.menuStrip.ResumeLayout(false);
+            this.menuStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -276,6 +325,10 @@
         private System.Windows.Forms.Button buttonRemoveAllFiles;
         private System.Windows.Forms.CheckBox checkBoxGenerateFileNew;
         private System.Windows.Forms.Button buttonExit;
+        private System.Windows.Forms.MenuStrip menuStrip;
+        private System.Windows.Forms.ToolStripMenuItem možnostiToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem oProgramuToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ukončitToolStripMenuItem;
     }
 }
 

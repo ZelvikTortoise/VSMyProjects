@@ -37,16 +37,15 @@ namespace RZHledani
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     newFile = openFileDialog.FileName;
-                }
-
-                if (!newFile.EndsWith(".csv"))
-                {
-                    MessageBox.Show("Chyba. Soubor nebyl přidán.\nPodpora souborů mimo formát csv zatím nebyla implementována. Načtěte pouze soubory formátu csv.", "Chybí podpora formátu vstupního souboru", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                else
-                {                    
-                    UpdateCount(true, newFile);                    
+                    if (!newFile.EndsWith(".csv"))
+                    {
+                        MessageBox.Show("Chyba. Soubor nebyl přidán.\nPodpora souborů mimo formát csv zatím nebyla implementována. Načtěte pouze soubory formátu csv.", "Chybí podpora formátu vstupního souboru", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    else
+                    {
+                        UpdateCount(true, newFile);
+                    }
                 }
             }
         }
@@ -408,6 +407,21 @@ namespace RZHledani
         }
 
         private void buttonExit_Click(object sender, EventArgs e)
+        {
+            DialogResult answer = MessageBox.Show("Opravdu chcete aplikaci ukončit?", "Konec?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (answer == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+
+        private void oProgramuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string hint = "BlablablaTODO.";
+            MessageBox.Show(hint, "O programu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ukončitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DialogResult answer = MessageBox.Show("Opravdu chcete aplikaci ukončit?", "Konec?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (answer == DialogResult.Yes)
