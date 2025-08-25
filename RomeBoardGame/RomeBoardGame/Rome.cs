@@ -67,7 +67,7 @@ namespace RomeBoardGame
         private static bool freeBuldings = false;
         private static bool freeCharacters = false;
         private static byte opponentsDefenseLoweredBy = 0;
-        private static bool abilityAesculapinumUsable = false;
+        private static bool gameRunning;
         static Rome()
         {
             InitializeCards();
@@ -79,11 +79,39 @@ namespace RomeBoardGame
         {
             namePlayer1 = "hráč 1";
             namePlayer2 = "hráč 2";
+            GameStart();
         }
         public Rome(string name1, string name2)
         {
             namePlayer1 = name1;
             namePlayer2 = name2;
+            GameStart();
+        }
+
+        // Game running methods:
+        public static void GameStart()
+        {
+            gameRunning = true;
+            while (gameRunning)
+            {
+
+            }
+        }
+        public static void StartTurn()
+        {
+            Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
+            Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
+            RollActionDice();
+        }
+        public static void EndTurn()
+        {
+            freeBuldings = false;
+            freeCharacters = false;
+            opponentsDefenseLoweredBy = 0;
+            blockedSlotsCurrent = blockedSlotsOfOpponentNextTurn;
+            blockedSlotsOfOpponentNextTurn = new List<byte>();
+            ActivePlayer ^= 1;  // Flipping the last bit: 0 -> 1, 1 -> 0.
+            StartTurn();
         }
 
         // Other actions (info, etc.):
@@ -197,23 +225,7 @@ namespace RomeBoardGame
             return emptySlots;
         }
 
-        // Game running methods:
-        public static void StartTurn()
-        {
-            Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
-            Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
-            RollActionDice();
-        }
-        public static void EndTurn()
-        {
-            freeBuldings = false;
-            freeCharacters = false;
-            opponentsDefenseLoweredBy = 0;
-            blockedSlotsCurrent = blockedSlotsOfOpponentNextTurn;
-            blockedSlotsOfOpponentNextTurn = new List<byte>();
-            ActivePlayer ^= 1;  // Flipping the last bit: 0 -> 1, 1 -> 0.
-            StartTurn();
-        }
+
 
         // Game actions:
         private static void ActivateAbilityWithActionDie()
@@ -446,7 +458,7 @@ namespace RomeBoardGame
         }
         private static void PickOneCharacterFromDiscardPile()
         {
-            if (!abilityAesculapinumUsable)
+            if (!AreNoCharactersInDiscardPile())
             {
                 Console.WriteLine();
                 PrintActionUnavailable("odkládací balíček neobsahuje žádné karty osob");
@@ -457,7 +469,6 @@ namespace RomeBoardGame
             {
                 SortDiscardPileCharacterFirst();
                 PickOneFromPile(discardPile, 2);
-                if (AreNoCharactersInDiscardPile()) abilityAesculapinumUsable = false;
                 ActionFinished();
             }
         }
