@@ -68,6 +68,8 @@ namespace RomeBoardGame
         private static bool freeCharacters = false;
         private static byte opponentsDefenseLoweredBy = 0;
         private static bool gameRunning;
+        private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnding };
+        private static GameStates gameState;
         static Rome()
         {
             InitializeCards();
@@ -79,22 +81,63 @@ namespace RomeBoardGame
         {
             namePlayer1 = "hráč 1";
             namePlayer2 = "hráč 2";
-            GameStart();
         }
         public Rome(string name1, string name2)
         {
             namePlayer1 = name1;
             namePlayer2 = name2;
-            GameStart();
         }
 
         // Game running methods:
         public static void GameStart()
         {
+            Rome game;
+            gameState = GameStates.GameStarting;
             gameRunning = true;
             while (gameRunning)
             {
+                switch (gameState)
+                {
+                    case GameStates.GameStarting:                        
+                        string player1Name, player2Name;
+                        Console.WriteLine("ŘÍM");
+                        Console.WriteLine("Vítejte ve hře Řím.");
+                        Console.WriteLine("Jedná se o hru pro 2 hráče.");
+                        Console.Write("Chcete si nastavit jména pro každého z hráčů? (a = ano, n = ne)");
+                        if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
+                        {
+                            Console.Write("Zadejte jméno hráče 1: ");
+                            player1Name = Console.ReadLine()!;
+                            Console.Write("Zadejte jméno hráče 2: ");
+                            player2Name = Console.ReadLine()!;
+                            game = new Rome(player1Name, player2Name);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Hra použije výchozí jména pro hráče.");
+                            game = new Rome();
+                        }
+                        Console.WriteLine("Hra je připravena. Hodně štěstí a příjemnou zábavu.");
+                        gameState = GameStates.Preparation;
+                        break;
+                    case GameStates.Preparation:
 
+                        break;
+                    case GameStates.PayingVictoryPoints:
+
+                        break;
+                    case GameStates.RollingActionDice:
+
+                        break;
+                    case GameStates.TakingActions:
+
+                        break;
+                    case GameStates.GameEnding:
+
+                        break;
+                    default:
+                        throw new NotImplementedException("V herním cyklu byl dosažen neimplementovaný stav. Kontaktujte programátora.");
+                }
             }
         }
         public static void StartTurn()
