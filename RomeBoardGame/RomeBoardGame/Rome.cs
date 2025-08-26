@@ -67,8 +67,7 @@ namespace RomeBoardGame
         private static bool freeBuldings = false;
         private static bool freeCharacters = false;
         private static byte opponentsDefenseLoweredBy = 0;
-        private static bool gameRunning;
-        private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnding };
+        private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnding, GameEnded };
         private static GameStates gameState;
         static Rome()
         {
@@ -93,8 +92,7 @@ namespace RomeBoardGame
         {
             Rome game;
             gameState = GameStates.GameStarting;
-            gameRunning = true;
-            while (gameRunning)
+            while (gameState != GameStates.GameEnded)
             {
                 switch (gameState)
                 {
@@ -929,12 +927,13 @@ namespace RomeBoardGame
             Console.WriteLine("KONEC HRY");
             Console.Write("Zmáčknutím libovolné klávesy ukončíte aplikaci... ");
             Console.ReadKey();
-            Environment.Exit(0);    // Ukončí aplikaci s kódem 0 (= nedošlo k chybě).
+            gameState = GameStates.GameEnded;
         }
         internal static void CheckIfGameEnded()
         {
             if (TryGetWinnerPlayerIndex(out byte winner))
             {
+                gameState = GameStates.GameEnding;
                 Console.WriteLine($"Hra skončila, protože {(playerStats[winner ^ 1][1] <= 0 ? "jednomu z hráčů došly vítězné body" : "v zásobě již nejsou žádné vítězné body")}.");
                 GameEnded(winner);
             }
