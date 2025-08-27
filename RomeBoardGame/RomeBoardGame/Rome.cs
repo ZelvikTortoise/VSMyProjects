@@ -180,7 +180,6 @@ namespace RomeBoardGame
             Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
             Console.ReadKey();
             Console.WriteLine();
-            RollActionDice();
             PrintPlayerStats(); // Prints the amount of money and victory points of both players, then prints the state of the slots on both sides.
         }
         public static void EndTurn()
@@ -480,6 +479,7 @@ namespace RomeBoardGame
         }
         private static void ActivateAbilityWithActionDie()
         {
+            // TODO: 0 kostek => nelze použít
             byte temp = lastActivatedSlot;
             lastActivatedSlot = (byte)(ChooseActionDie() - 1);  // lastActivatedSlot is 0–5, ChooseActionDie() removes the die from play
             if (slots[ActivePlayer][lastActivatedSlot] != emptySlotValue && !blockedSlotsCurrent.Contains(lastActivatedSlot))
@@ -493,12 +493,14 @@ namespace RomeBoardGame
         }
         private static void TakeMoneyWithActionDie()
         {
+            // TODO: 0 kostek => nelze použít
             byte addedMoney = ChooseActionDie();
             playerStats[ActivePlayer][0] += addedMoney;
             Console.WriteLine("Tvé zásoby sestercií se zvýšily o {0}", addedMoney);
         }
         private static void DrawCardsToHand(byte number)
         {
+            // TODO: 0 kostek => nelze použít
             byte numberOfCards = number;
             for (int i = 1; i <= numberOfCards; i++)
             {
@@ -1098,6 +1100,7 @@ namespace RomeBoardGame
         }
         private static void RepositionCards(bool buildings)
         {
+            // TODO: Some mistake with indeces.
             List<byte> repositionedSlots = new List<byte>();
             for (byte i = 0; i < 6; i++)
             {
