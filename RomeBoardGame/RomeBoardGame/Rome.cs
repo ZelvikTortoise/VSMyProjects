@@ -42,7 +42,7 @@ namespace RomeBoardGame
                     AddToDrawDeck((Card)Activator.CreateInstance(cardType)!);   // Filling draw deck.
                 }
             }
-            listOfAllCardTypes = cardTypes.Select(t => (Card)Activator.CreateInstance(t)!).ToList();    // Creating list of all types.
+            listOfAllCardTypes = drawDeck.DistinctBy(c => c.GetType()).ToList();    // Creating list of all types.
             listOfAllCardTypes.OrderBy(t => t.Name);
         }
         static void InitializePlayerStats()
