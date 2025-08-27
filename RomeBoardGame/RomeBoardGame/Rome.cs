@@ -32,17 +32,24 @@ namespace RomeBoardGame
             drawDeck = new List<Card>();    // Emptying draw deck.
             discardPile = new List<Card>(); // Emptying discard pile.
             var typeOfCard = typeof(Card);
+            Card card;
             var cardTypes = typeOfCard.Assembly.GetTypes().Where(t => t.IsSubclassOf(typeOfCard));
             cardTypes = cardTypes.OrderBy(type => type.Name);
+            byte count;
             foreach (var cardType in cardTypes)
-            {
-                var count = cardType.GetField("Count", BindingFlags.Public | BindingFlags.Static)!.GetValue(null) ?? 0;
-                for (byte i = 1; i <= (byte)count; i++)
+            {                
+                card = (Card)Activator.CreateInstance(cardType)!;   // ALWAYS creating the first card of each type.
+                count = card.Count;
+                AddToPile(card, listOfAllCardTypes);    // Creating list of all types.
+                AddToDrawDeck(card);
+                for (byte i = 2; i <= (byte)count; i++)     // Creating duplicate cards if there are more of them in the draw deck.
                 {
-                    AddToDrawDeck((Card)Activator.CreateInstance(cardType)!);   // Filling draw deck.
+                    card = (Card)Activator.CreateInstance(cardType)!;
+                    AddToDrawDeck(card);   // Filling draw deck.
                 }
+                //var cardsLeft = cardType.GetField("Count", BindingFlags.Public | BindingFlags.Static)!.GetValue(null) ?? 0;
             }
-            listOfAllCardTypes = drawDeck.DistinctBy(c => c.GetType()).ToList();    // Creating list of all types.
+            // listOfAllCardTypes = drawDeck.DistinctBy(c => c.GetType()).ToList();
             listOfAllCardTypes.OrderBy(t => t.Name);
         }
         static void InitializePlayerStats()
@@ -110,10 +117,13 @@ namespace RomeBoardGame
                 {
                     case GameStates.GameStarting:
                         PrintGameStart();
+                        Console.WriteLine();
                         SetPlayerNamesAndCreateGame();
                         ActivePlayer = 0;
                         ResetDecks();
                         Console.WriteLine("Hra je připravena. Hodně štěstí a příjemnou zábavu.");
+                        Console.WriteLine();
+                        Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
                         gameState = GameStates.Preparation;
                         break;
                     case GameStates.Preparation:
@@ -162,6 +172,7 @@ namespace RomeBoardGame
             Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
             Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
             Console.ReadKey();
+            Console.WriteLine();
             RollActionDice();
             PrintPlayerStats(); // Prints the amount of money and victory points of both players, then prints the state of the slots on both sides.
         }
@@ -187,8 +198,10 @@ namespace RomeBoardGame
         {
             Rome game;
             string player1Name, player2Name;
-            Console.Write("Chcete si nastavit jména pro každého z hráčů? (a = ano, n = ne)");
-            if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
+            Console.WriteLine("Chcete si nastavit jména pro každého z hráčů? (a = ano, n = ne)");
+            Console.Write("Odpověď: ");
+            string answer;
+            if ((answer = (Console.ReadLine() ?? string.Empty)).ToLower() == "a" || answer.ToLower() == "ano")
             {
                 Console.Write("Zadejte jméno hráče 1: ");
                 player1Name = Console.ReadLine()!;
@@ -207,8 +220,10 @@ namespace RomeBoardGame
         {
             Console.Write("Po zmáčknutí libovolné klávesy si vezmeš do ruky čtyři karty z balíčku... ");
             Console.ReadKey();
-            DrawCards(numberOfInitialCards);
+            Console.WriteLine();
+            DrawCardsToHand(numberOfInitialCards);
             cardsToGive[ActivePlayer] = new List<Card>();
+            Console.WriteLine();
             Console.WriteLine("Zvol si dvě karty, které dáš soupeřovi.");
             for (int i = 1; i <= 2; i++)
             {
@@ -216,6 +231,7 @@ namespace RomeBoardGame
                 cardsToGive[ActivePlayer].Add(hands[ActivePlayer][hands[ActivePlayer].Count - 1]);  // Marks the card as a card to give away.
                 hands[ActivePlayer].RemoveAt(hands[ActivePlayer].Count - 1);    // Removes the card from hand.
             }
+            Console.WriteLine();
             Console.WriteLine("Karty k výměně byly úspěšně vybrány.");
             ToggleActivePlayer();
         }
@@ -229,6 +245,7 @@ namespace RomeBoardGame
             {
                 PlayCardFromHand();
             }
+            Console.WriteLine();
             Console.WriteLine("Všechny karty byly úspěšně umístěny.");
             ToggleActivePlayer();
         }
@@ -240,6 +257,7 @@ namespace RomeBoardGame
             Console.WriteLine(card!.ToString());
             Console.Write("K pokračování zmáčkni libovolnou klávesu... ");
             Console.ReadKey();
+            Console.WriteLine();
         }
 
         // Not used.
@@ -464,7 +482,22 @@ namespace RomeBoardGame
             playerStats[ActivePlayer][0] += addedMoney;
             Console.WriteLine("Tvé zásoby sestercií se zvýšily o {0}", addedMoney);
         }
-        private static void DrawCards(byte number)
+        private static void DrawCardsToHand(byte number)
+        {
+            byte numberOfCards = number;
+            for (int i = 1; i <= numberOfCards; i++)
+            {
+                if (drawDeck.Count == 0)    // Shouldn't happen.
+                {
+                    MakeNewDrawDeck();
+                    Console.WriteLine();
+                    Console.WriteLine("Karty v dobíracím balíčku byly vyčerpány. Odkládací balíček byl zamíchán a tvoří nyní nový dobírací balíček.");
+                }
+                hands[ActivePlayer].Add(drawDeck[0]);
+                drawDeck.RemoveAt(0);
+            }
+        }
+        private static void DrawCardsAndChooseOne(byte number)
         {
             byte numberOfCards = number;
             List<Card> drawnCards = new List<Card>();
@@ -479,7 +512,7 @@ namespace RomeBoardGame
                 drawnCards.Add(drawDeck[0]);
                 drawDeck.RemoveAt(0);
             }
-            drawnCards.Sort();
+            drawnCards.OrderBy(card => card.Name);
             PickOneFromPile(drawnCards, 1);     // Removes the picked card from the pile.
             foreach (Card card in drawnCards)
             {
@@ -491,7 +524,7 @@ namespace RomeBoardGame
         private static void DrawCardsWithActionDie()
         {
             byte numberOfCards = ChooseActionDie();
-            DrawCards(numberOfCards);
+            DrawCardsAndChooseOne(numberOfCards);
         }
         private static bool CanBePaidFor(Card card)
         {
@@ -512,7 +545,7 @@ namespace RomeBoardGame
             }
             else
             {
-                Console.WriteLine();
+                // Console.WriteLine(); // DELETE?
                 cardsPossibleToPlay.OrderBy(card => card.Name);
                 PickOneFromPile(cardsPossibleToPlay, 1);    // Adds the picked card to hand (as the last card).
                 byte chosenSlot = ChooseSlot();
@@ -545,7 +578,7 @@ namespace RomeBoardGame
                 Console.Write($"Zvol celé číslo od {min} do {max}: ");
                 answer = Console.ReadLine();
             }
-            while (!byte.TryParse(answer, out number));
+            while (!byte.TryParse(answer, out number) || number < min || number > max);
 
             return number;
         }
@@ -584,7 +617,7 @@ namespace RomeBoardGame
         /// <param name="option">1 ... all, 2 ... only characters, 3 ... only buildings</param>
         private static void PrintPile(List<Card> pile, byte option)
         {
-            Console.WriteLine("Karty::");
+            Console.WriteLine("Karty:");
             StringBuilder sb = new StringBuilder();
             byte id = 1;
             bool doubleDigits = pile.Count >= 10;
@@ -628,6 +661,7 @@ namespace RomeBoardGame
             Console.ReadKey();
             Console.Clear();
             ActivePlayer ^= 1;  // Flipping the last bit: 0 -> 1, 1 -> 0.
+            Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
         }
         private static void ResetDecks()
         {
@@ -694,8 +728,8 @@ namespace RomeBoardGame
                     break;
             }
             byte picked = PromptForNumber(1, max);
-            hands[ActivePlayer].Add(pile[picked]);
-            pile.RemoveAt(picked);
+            hands[ActivePlayer].Add(pile[picked - 1]);
+            pile.RemoveAt(picked - 1);
         }
         private static void MakeNewDrawDeck()
         {
@@ -817,7 +851,7 @@ namespace RomeBoardGame
                 }
                 else
                     first = false;
-                Console.WriteLine("Zvol číslo slotu (1, 2, 3, 4, 5, 6): ");
+                Console.Write("Zvol číslo slotu (1, 2, 3, 4, 5, 6): ");
                 answer = Console.ReadLine() ?? string.Empty;
             }
             while (!byte.TryParse(answer, out chosenSlot) || chosenSlot < 1 || chosenSlot > 6);
@@ -962,6 +996,8 @@ namespace RomeBoardGame
             Console.WriteLine("Potřebná hodnota pro zničení soupeřovy karty: {0}", goal);
             Console.Write("Zmáčkni libovolnou klávesu pro hod bojovou kostkou... ");
             Console.ReadKey();
+            Console.WriteLine();
+            Console.WriteLine();
             byte combatDie = (byte)random.Next(1, 7);
             Console.WriteLine("Bojová kostka: {0}", combatDie);
             if (combatDie >= goal)  // successful attack
@@ -976,7 +1012,8 @@ namespace RomeBoardGame
                 {
                     Console.WriteLine("Útočná síla zatím nestačí. Je ještě potřeba alespoň {0} další útočné síly.", goal - combatDie);
                     Console.Write("Chceš přidat svou nepoužitou akční kostku, aby byl útok úspěšný? (a = ano, n = ne)");
-                    if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
+                    string answer;
+                    if ((answer = (Console.ReadLine() ?? string.Empty)).ToLower() == "a" || answer.ToLower() == "ano")
                     {
                         byte chosenActionDie = actionDice[actionDice.Count - 1];
                         if (actionDice.Count == 2 && actionDice[0] + combatDie >= goal && actionDice[0] != actionDice[1]) // both dice can help win the combat and are not the same
@@ -1281,7 +1318,8 @@ namespace RomeBoardGame
                     if (actionDice.Count > 0)
                     {
                         Console.WriteLine("Vedle tvého aktivovaného fóra je chrám. Přeješ si použít svou třetí akční kostku pro zisk doplňujících vítězných bodů ze zásob? (a = ano, n = ne)");
-                        if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
+                        string answer;
+                        if ((answer = (Console.ReadLine() ?? string.Empty)).ToLower() == "a" || answer.ToLower() == "ano")
                         {
                             gain += actionDice[0];
                             Console.WriteLine("Třetí akční kostka byla použita pro zisk doplňujících vítězných bodů (hodnota {0}).", actionDice[0]);

@@ -6,7 +6,7 @@ namespace RomeBoardGame
     {
         static void Main(string[] args)
         {
-            Rome.GameStart();            
+            Rome.GameStart();
         }
     }
 }
