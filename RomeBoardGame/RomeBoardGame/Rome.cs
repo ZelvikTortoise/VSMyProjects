@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +12,7 @@ namespace RomeBoardGame
 {
     internal class Rome
     {
+        // Methods for initialization:
         static void InitializeHandsAndSlots()
         {
             hands[0] = new List<Card>();
@@ -26,17 +29,21 @@ namespace RomeBoardGame
         }
         static void InitializeCards()
         {
-            Card card;
+            drawDeck = new List<Card>();    // Emptying draw deck.
+            discardPile = new List<Card>(); // Emptying discard pile.
             var typeOfCard = typeof(Card);
             var cardTypes = typeOfCard.Assembly.GetTypes().Where(t => t.IsSubclassOf(typeOfCard));
+            cardTypes.OrderBy(type => type.Name);
             foreach (var cardType in cardTypes)
             {
                 var count = cardType.GetField("Count", BindingFlags.Public | BindingFlags.Static)!.GetValue(null) ?? 0;
                 for (byte i = 1; i <= (byte)count; i++)
                 {
-                    card = (Card)Activator.CreateInstance(cardType)!;
+                    AddToDrawDeck((Card)Activator.CreateInstance(cardType)!);   // Filling draw deck.
                 }
             }
+            listOfAllCardTypes = cardTypes.Select(t => (Card)Activator.CreateInstance(t)!).ToList();    // Creating list of all types.
+            listOfAllCardTypes.OrderBy(t => t.Name);
         }
         static void InitializePlayerStats()
         {
@@ -47,12 +54,13 @@ namespace RomeBoardGame
             playerStats[1][0] = 0;
             playerStats[1][1] = 10;
         }
+        // Variables and constants:
         private static Random random = new Random();
         public static byte ActivePlayer;   // 0 or 1
         public static string? namePlayer1, namePlayer2;
         static List<Card> drawDeck = new List<Card>();
         static List<Card> discardPile = new List<Card>();
-        static List<Card> drawnCards = new List<Card>();
+        static List<Card> listOfAllCardTypes = new List<Card>();
         static List<Card>[] hands = new List<Card>[2];
         static Card?[][] slots = new Card[2][];
         static List<byte> blockedSlotsCurrent = new List<byte>();
@@ -61,20 +69,25 @@ namespace RomeBoardGame
         const byte totalVictoryPoints = 36;
         const Card? emptySlotValue = null;  // do not change (because of ?? operators)
         const byte longestCardName = 12;
+        const byte numberOfInitialCards = 4;
+        const string hiddenCardName = "[Skryto]";
         static Type notCardType = typeof(string);  // anything different from Card or its subclasses
         static List<byte> actionDice = new List<byte>();
         public static byte lastActivatedSlot = 6; // 0, 1, 2, 3, 4, 5
         private static bool freeBuldings = false;
         private static bool freeCharacters = false;
+        private static bool hiddenCardsInSlots = false;
+        private static byte actionNumber = 0;
         private static byte opponentsDefenseLoweredBy = 0;
-        private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnding, GameEnded };
+        private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnded };
         private static GameStates gameState;
+
+        // Constructors:
         static Rome()
         {
             InitializeCards();
             InitializeHandsAndSlots();
-            InitializePlayerStats();
-            ActivePlayer = 0;
+            InitializePlayerStats();            
         }
         public Rome()
         {
@@ -87,62 +100,70 @@ namespace RomeBoardGame
             namePlayer2 = name2;
         }
 
-        // Game running methods:
+        // Game cycle:
         public static void GameStart()
         {
-            Rome game;
             gameState = GameStates.GameStarting;
             while (gameState != GameStates.GameEnded)
             {
                 switch (gameState)
                 {
-                    case GameStates.GameStarting:                        
-                        string player1Name, player2Name;
-                        Console.WriteLine("ŘÍM");
-                        Console.WriteLine("Vítejte ve hře Řím.");
-                        Console.WriteLine("Jedná se o hru pro 2 hráče.");
-                        Console.Write("Chcete si nastavit jména pro každého z hráčů? (a = ano, n = ne)");
-                        if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
-                        {
-                            Console.Write("Zadejte jméno hráče 1: ");
-                            player1Name = Console.ReadLine()!;
-                            Console.Write("Zadejte jméno hráče 2: ");
-                            player2Name = Console.ReadLine()!;
-                            game = new Rome(player1Name, player2Name);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Hra použije výchozí jména pro hráče.");
-                            game = new Rome();
-                        }
+                    case GameStates.GameStarting:
+                        PrintGameStart();
+                        SetPlayerNamesAndCreateGame();
+                        ActivePlayer = 0;
+                        ResetDecks();
                         Console.WriteLine("Hra je připravena. Hodně štěstí a příjemnou zábavu.");
                         gameState = GameStates.Preparation;
                         break;
                     case GameStates.Preparation:
-
+                        TogglePreparationPhase(true);
+                        List<Card>[] cardsToGive = new List<Card>[2];
+                        for (byte k = 0; k < 2; k++)
+                        {
+                            ExchangeHiddenCards(cardsToGive);
+                        }
+                        for (byte k = 0; k < 2; k++)
+                        {
+                            RecieveCardsAndPlaceFirstCards(cardsToGive);
+                        }
+                        TogglePreparationPhase(false);
+                        gameState = GameStates.PayingVictoryPoints;
                         break;
                     case GameStates.PayingVictoryPoints:
-
+                        LoseVictoryPointsToSupply(GetNumberOfEmptySlots(true));
+                        if (gameState != GameStates.GameEnded)
+                            gameState = GameStates.RollingActionDice;
                         break;
                     case GameStates.RollingActionDice:
-
+                        StartTurn();
+                        gameState = GameStates.TakingActions;
                         break;
                     case GameStates.TakingActions:
-
+                        Console.WriteLine();
+                        PrintPossibleActions();
+                        TakeAction(PromptForNumber(1, actionNumber));
+                        if (gameState != GameStates.GameEnded)
+                            gameState = GameStates.PayingVictoryPoints;
                         break;
-                    case GameStates.GameEnding:
-
+                    case GameStates.GameEnded:
+                        Console.Write("Zmáčknutím libovolné klávesy ukončíte aplikaci... ");
+                        Console.ReadKey();
                         break;
                     default:
                         throw new NotImplementedException("V herním cyklu byl dosažen neimplementovaný stav. Kontaktujte programátora.");
                 }
             }
         }
+
+        // Game running methods:
         public static void StartTurn()
         {
             Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
             Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
+            Console.ReadKey();
             RollActionDice();
+            PrintPlayerStats(); // Prints the amount of money and victory points of both players, then prints the state of the slots on both sides.
         }
         public static void EndTurn()
         {
@@ -151,8 +172,92 @@ namespace RomeBoardGame
             opponentsDefenseLoweredBy = 0;
             blockedSlotsCurrent = blockedSlotsOfOpponentNextTurn;
             blockedSlotsOfOpponentNextTurn = new List<byte>();
-            ActivePlayer ^= 1;  // Flipping the last bit: 0 -> 1, 1 -> 0.
+            ToggleActivePlayer();
             StartTurn();
+        }
+
+        private static void PrintGameStart()
+        {
+            Console.WriteLine("ŘÍM");
+            Console.WriteLine("Vítejte ve hře Řím.");
+            Console.WriteLine("Jedná se o hru pro 2 hráče.");
+        }
+
+        private static void SetPlayerNamesAndCreateGame()
+        {
+            Rome game;
+            string player1Name, player2Name;
+            Console.Write("Chcete si nastavit jména pro každého z hráčů? (a = ano, n = ne)");
+            if ((Console.ReadLine() ?? string.Empty).ToLower() == "a")
+            {
+                Console.Write("Zadejte jméno hráče 1: ");
+                player1Name = Console.ReadLine()!;
+                Console.Write("Zadejte jméno hráče 2: ");
+                player2Name = Console.ReadLine()!;
+                game = new Rome(player1Name, player2Name);
+            }
+            else
+            {
+                Console.WriteLine("Hra použije výchozí jména pro hráče.");
+                game = new Rome();
+            }
+        }
+
+        private static void ExchangeHiddenCards(List<Card>[] cardsToGive)
+        {
+            Console.Write("Po zmáčknutí libovolné klávesy si vezmeš do ruky čtyři karty z balíčku... ");
+            Console.ReadKey();
+            DrawCards(numberOfInitialCards);
+            cardsToGive[ActivePlayer] = new List<Card>();
+            Console.WriteLine("Zvol si dvě karty, které dáš soupeřovi.");
+            for (int i = 1; i <= 2; i++)
+            {
+                PickOneFromPile(hands[ActivePlayer], 1);    // Adds card to the end of the hand.
+                cardsToGive[ActivePlayer].Add(hands[ActivePlayer][hands[ActivePlayer].Count - 1]);  // Marks the card as a card to give away.
+                hands[ActivePlayer].RemoveAt(hands[ActivePlayer].Count - 1);    // Removes the card from hand.
+            }
+            Console.WriteLine("Karty k výměně byly úspěšně vybrány.");
+            ToggleActivePlayer();
+        }
+
+        private static void RecieveCardsAndPlaceFirstCards(List<Card>[] cardsToGive)
+        {
+            hands[ActivePlayer].Add(cardsToGive[ActivePlayer ^ 1][0]);
+            hands[ActivePlayer].Add(cardsToGive[ActivePlayer ^ 1][1]);
+            Console.WriteLine("Nyní po jedné umísti všechny své karty na své sloty.");
+            for (byte i = 1; i <= numberOfInitialCards; i++)
+            {
+                PlayCardFromHand();
+            }
+            Console.WriteLine("Všechny karty byly úspěšně umístěny.");
+            ToggleActivePlayer();
+        }
+
+        private static void ReadCardTooltip(Card card)
+        {
+            if (card == null)
+                throw new ArgumentException("V nápovědě byla zvolena neznámá karta. Kontaktujte programátora.", "Nápověda: neexistující karta");
+            Console.WriteLine(card!.ToString());
+            Console.Write("K pokračování zmáčkni libovolnou klávesu... ");
+            Console.ReadKey();
+        }
+
+        // Not used.
+        private static void ReadCardTypeTooltip(Type? cardType)
+        {
+            if (cardType == null)
+                throw new ArgumentException("V nápovědě byl zvolen neznámý typ karty. Kontaktujte programátora.");
+            if (!typeof(Card).IsAssignableFrom(cardType))
+                throw new ArgumentException(String.Format("V nápovědě byl zvolen typ {0}, který však není kartou typu {1}. Kontaktujte programátora.", nameof(cardType), nameof(Card)), "Nápověda: zadán typ, který není kartou");
+            ReadCardTooltip((Card)Activator.CreateInstance(cardType!)!);
+        }
+
+        public static void LookUpCardTooltip()
+        {
+            Console.WriteLine();
+            Console.WriteLine("NÁPOVĚDA – zvol si kartu, která má být vysvětlena:");
+            PrintPile(listOfAllCardTypes);
+            ReadCardTooltip(listOfAllCardTypes[PromptForNumber(1, (byte)listOfAllCardTypes.Count) - 1]);
         }
 
         // Other actions (info, etc.):
@@ -164,32 +269,65 @@ namespace RomeBoardGame
             int charactersLeft;
             bool activePlayerCardInSlot;
 
-            for (int i = 0; i < 6; i++)
+            if (hiddenCardsInSlots)
             {
-                // Appending left cardName aligned to right filled with spaces from left.
-                charactersLeft = longestCardName;
-                activePlayerCardInSlot = false;
-                if (activePlayerSlots[i] != emptySlotValue)
+                for (int i = 0; i < 6; i++)
                 {
-                    charactersLeft -= activePlayerSlots[i]!.Name.Length;
-                    activePlayerCardInSlot = true;
+                    // Appending left cardName aligned to right filled with spaces from left.
+                    charactersLeft = longestCardName;
+                    activePlayerCardInSlot = false;
+                    if (activePlayerSlots[i] != emptySlotValue)
+                    {
+                        charactersLeft -= hiddenCardName.Length;
+                        activePlayerCardInSlot = true;
+                    }
+                    for (int j = charactersLeft; j > 0; j--)
+                        sb.Append(' ');
+                    if (activePlayerCardInSlot)
+                        sb.Append(hiddenCardName);
+
+                    sb.Append($" #{i + 1}# "); // space #slotNumber# space
+
+                    // Appending right cardName aligned to left filled with spaces from right.
+                    charactersLeft = longestCardName;
+                    if (opponentPlayerSlots[i] != emptySlotValue)
+                    {
+                        charactersLeft -= hiddenCardName.Length;
+                        sb.Append(hiddenCardName);
+                    }
+                    for (int j = charactersLeft; j > 0; j--)
+                        sb.Append(' ');
                 }
-                for (int j = charactersLeft; j > 0; j--)
-                    sb.Append(' ');
-                if (activePlayerCardInSlot)
-                    sb.Append(activePlayerSlots[i]!.Name);
-
-                sb.Append($" #{i + 1}# "); // space #slotNumber# space
-
-                // Appending right cardName aligned to left filled with spaces from right.
-                charactersLeft = longestCardName;
-                if (opponentPlayerSlots[i] != emptySlotValue)
+            }
+            else
+            {
+                for (int i = 0; i < 6; i++)
                 {
-                    charactersLeft -= opponentPlayerSlots[i]!.Name.Length;
-                    sb.Append(opponentPlayerSlots[i]!.Name);
+                    // Appending left cardName aligned to right filled with spaces from left.
+                    charactersLeft = longestCardName;
+                    activePlayerCardInSlot = false;
+                    if (activePlayerSlots[i] != emptySlotValue)
+                    {
+                        charactersLeft -= activePlayerSlots[i]!.Name.Length;
+                        activePlayerCardInSlot = true;
+                    }
+                    for (int j = charactersLeft; j > 0; j--)
+                        sb.Append(' ');
+                    if (activePlayerCardInSlot)
+                        sb.Append(activePlayerSlots[i]!.Name);
+
+                    sb.Append($" #{i + 1}# "); // space #slotNumber# space
+
+                    // Appending right cardName aligned to left filled with spaces from right.
+                    charactersLeft = longestCardName;
+                    if (opponentPlayerSlots[i] != emptySlotValue)
+                    {
+                        charactersLeft -= opponentPlayerSlots[i]!.Name.Length;
+                        sb.Append(opponentPlayerSlots[i]!.Name);
+                    }
+                    for (int j = charactersLeft; j > 0; j--)
+                        sb.Append(' ');
                 }
-                for (int j = charactersLeft; j > 0; j--)
-                    sb.Append(' ');
 
                 // Outputting the slot stats:
                 Console.WriteLine(sb.ToString());
@@ -269,6 +407,44 @@ namespace RomeBoardGame
 
 
         // Game actions:
+        private static void PrintPossibleActions()
+        {
+            actionNumber = 0;
+            Console.WriteLine("VOLBA AKCE");
+            Console.WriteLine("{0} = aktivace karty ve slotu za akční kostku", ++actionNumber);
+            Console.WriteLine("{0} = výběr peněz za akční kostku", ++actionNumber);
+            Console.WriteLine("{0} = dobrání karty za akční kostku", ++actionNumber);
+            Console.WriteLine("{0} = vyložení karty do slotů za peníze", ++actionNumber);
+            Console.WriteLine("{0} = nápověda: co dělá daná karta", ++actionNumber);
+            if (actionDice.Count == 0)
+                Console.WriteLine("{0} = konec kola", ++actionNumber);
+        }
+        private static void TakeAction(byte actionIndex)
+        {
+            switch (actionIndex)
+            {
+                case 1:
+                    ActivateAbilityWithActionDie();
+                    break;
+                case 2:
+                    TakeMoneyWithActionDie();
+                    break;
+                case 3:
+                    DrawCardsWithActionDie();
+                    break;
+                case 4:
+                    PlayCardFromHand();
+                    break;
+                case 5:
+                    LookUpCardTooltip();
+                    break;
+                case 6:
+                    EndTurn();
+                    break;
+                default:
+                    throw new ArgumentException("V tahu hráče byla zvolena neznámá akce. Kontaktujte programátora.", "Zvolena neexistující akce");
+            }
+        }
         private static void ActivateAbilityWithActionDie()
         {
             byte temp = lastActivatedSlot;
@@ -288,9 +464,9 @@ namespace RomeBoardGame
             playerStats[ActivePlayer][0] += addedMoney;
             Console.WriteLine("Tvé zásoby sestercií se zvýšily o {0}", addedMoney);
         }
-        private static void DrawCardsWithACtionDie()
+        private static void DrawCards(byte number)
         {
-            byte numberOfCards = ChooseActionDie();
+            byte numberOfCards = number;
             List<Card> drawnCards = new List<Card>();
             Console.WriteLine();
             for (int i = 1; i <= numberOfCards; i++)
@@ -312,12 +488,21 @@ namespace RomeBoardGame
             Console.WriteLine("Karta byla úspěšně vybrána. Počet karet odhozených na odkládací balíček: {0}", drawnCards.Count);
             drawnCards.Clear(); // probably unnecessary (declaration space is ending)
         }
+        private static void DrawCardsWithActionDie()
+        {
+            byte numberOfCards = ChooseActionDie();
+            DrawCards(numberOfCards);
+        }
+        private static bool CanBePaidFor(Card card)
+        {
+            return (card.Building && freeBuldings) || (!card.Building && freeCharacters) || (card.Cost <= playerStats[ActivePlayer][0]);
+        }
         private static void PlayCardFromHand()
         {
             List<Card> cardsPossibleToPlay = new List<Card>();
             for (byte i = 0; i < hands[ActivePlayer].Count; i++)
             {
-                if (hands[ActivePlayer][i].Cost <= playerStats[ActivePlayer][0])
+                if (CanBePaidFor(hands[ActivePlayer][i]))
                     cardsPossibleToPlay.Add(hands[ActivePlayer][i]);
             }
             if (cardsPossibleToPlay.Count <= 0)
@@ -364,13 +549,21 @@ namespace RomeBoardGame
 
             return number;
         }
+        private static void TogglePreparationPhase(bool starting)
+        {
+            hiddenCardsInSlots = starting;
+            freeBuldings = starting;
+            freeCharacters = starting;
+        }
         private static void ActionFinished()
         {
             Console.WriteLine("Využití schopnosti dokončeno.");
         }
         private static void PayForCard(Card card)
         {
-            playerStats[ActivePlayer][0] -= card.Cost;
+            if ((card.Building && !freeBuldings) || (!card.Building && !freeCharacters))
+                playerStats[ActivePlayer][0] -= card.Cost;
+            // else: card is free thanks to Architectus or Senator            
         }
         private static void AddToPile(Card card, List<Card> pile)
         {
@@ -379,6 +572,10 @@ namespace RomeBoardGame
         internal static void AddToDrawDeck(Card card)
         {
             AddToPile(card, drawDeck);
+        }
+        private static void PrintPile(List<Card> pile)
+        {
+            PrintPile(pile, 1);
         }
         /// <summary>
         /// Zobrazí v konzoli karty v balíčku. Parametr option rozhodne, zda všechny: 1, pouze osoby: 2, nebo pouze budovy :3.
@@ -425,6 +622,30 @@ namespace RomeBoardGame
                 Console.WriteLine(sb.ToString());
             }
         }
+        private static void ToggleActivePlayer()
+        {
+            Console.Write("Zmáčknutím libovolné klávesy ukončíš svůj tah... ");
+            Console.ReadKey();
+            Console.Clear();
+            ActivePlayer ^= 1;  // Flipping the last bit: 0 -> 1, 1 -> 0.
+        }
+        private static void ResetDecks()
+        {
+            for (int i = discardPile.Count; i > 0; i--)
+            {
+                AddToDrawDeck(discardPile[i - 1]);
+                discardPile.RemoveAt(i - 1);
+            }
+            for (int k = 0; k < 2; k++)
+            {
+                for (int i = hands[k].Count; i > 0; i--)
+                {
+                    AddToDrawDeck(hands[k][i - 1]);
+                    hands[k].RemoveAt(i - 1);
+                }
+            }
+            ShuffleDrawDeck();
+        }
         private static void PrintDrawDeck()
         {
             PrintPile(drawDeck, 1);
@@ -436,6 +657,11 @@ namespace RomeBoardGame
         private static void SortDiscardPileCharacterFirst()
         {
             discardPile.OrderBy(card => card.Building).ThenBy(card => card.Name);
+        }
+
+        private static void PickOneFromPile(List<Card> pile)
+        {
+            PickOneFromPile(pile, 1);
         }
         private static void PickOneFromPile(List<Card> pile, byte option)
         {
@@ -925,15 +1151,12 @@ namespace RomeBoardGame
             PrintStatsVictoryPoints();
             Console.WriteLine($"Zvítězil(a) {(winner == 0 ? namePlayer1 : namePlayer2)}! Gratulujeme. :-)");
             Console.WriteLine("KONEC HRY");
-            Console.Write("Zmáčknutím libovolné klávesy ukončíte aplikaci... ");
-            Console.ReadKey();
             gameState = GameStates.GameEnded;
         }
         internal static void CheckIfGameEnded()
         {
             if (TryGetWinnerPlayerIndex(out byte winner))
             {
-                gameState = GameStates.GameEnding;
                 Console.WriteLine($"Hra skončila, protože {(playerStats[winner ^ 1][1] <= 0 ? "jednomu z hráčů došly vítězné body" : "v zásobě již nejsou žádné vítězné body")}.");
                 GameEnded(winner);
             }
@@ -1003,6 +1226,12 @@ namespace RomeBoardGame
         private static bool IsAnyTemplumNextToActivatedForum()
         {
             return GetNumberOfCertainCardsNextToActivatedSlot(typeof(Templum)) > 0;
+        }
+        internal static void LoseVictoryPointsToSupply(byte penalty)
+        {
+            Console.WriteLine("Celková ztráta vítězných bodů: {0}", penalty);
+            playerStats[ActivePlayer][1] -= penalty;
+            CheckIfGameEnded();
         }
         /// <summary>
         /// Adds the victory points, calls ActionFinished() and then CheckIfGameEnded().

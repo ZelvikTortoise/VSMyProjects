@@ -31,18 +31,17 @@ namespace RomeBoardGame
             StringBuilder sb = new StringBuilder();
             sb.Append(Name);
             sb.Append(" (");
-            sb.Append(Building ? "budova" : "osoba");
-            sb.Append("; cena: ");
-            sb.Append(Cost);
-            sb.Append(", obrana: ");
-            sb.Append(Defense);
-            sb.Append("): ");
-            sb.Append(Tooltip);
-            sb.Append(" (");
             sb.Append(Count);
-            sb.Append("×)");
+            sb.Append("×)\nTyp: ");
+            sb.Append(Building ? "budova" : "osoba");
+            sb.Append("\nCena: ");
+            sb.Append(Cost);
+            sb.Append("\nObrana: ");
+            sb.Append(Defense);
+            sb.Append('\n');
+            sb.Append(Tooltip);
 
-            return this.Name;
+            return sb.ToString();
         }
     }
 
