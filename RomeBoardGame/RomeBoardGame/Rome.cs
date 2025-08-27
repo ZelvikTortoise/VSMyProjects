@@ -172,7 +172,6 @@ namespace RomeBoardGame
         // Game running methods:
         public static void StartTurn()
         {
-            Console.WriteLine("Na tahu je {0}.", ActivePlayer == 0 ? namePlayer1 : namePlayer2);
             Console.Write("Zmáčkni libovolnou klávesu pro hod akčními kostkami... ");
             Console.ReadKey();
             Console.WriteLine();
@@ -436,14 +435,17 @@ namespace RomeBoardGame
         private static void PrintPossibleActions()
         {
             actionNumber = 0;
+            PrintRemainingActionDiceValues();
+            Console.WriteLine();
             Console.WriteLine("VOLBA AKCE");
-            Console.WriteLine("{0} = aktivace karty ve slotu za akční kostku", ++actionNumber);
-            Console.WriteLine("{0} = výběr peněz za akční kostku", ++actionNumber);
-            Console.WriteLine("{0} = dobrání karty za akční kostku", ++actionNumber);
-            Console.WriteLine("{0} = vyložení karty do slotů za peníze", ++actionNumber);
-            Console.WriteLine("{0} = nápověda: co dělá daná karta", ++actionNumber);
+            Console.WriteLine("[{0}] aktivace karty ve slotu za akční kostku", ++actionNumber);
+            Console.WriteLine("[{0}] výběr peněz za akční kostku", ++actionNumber);
+            Console.WriteLine("[{0}] dobrání karty za akční kostku", ++actionNumber);
+            Console.WriteLine("[{0}] vyložení karty do slotů za peníze", ++actionNumber);
+            Console.WriteLine("[{0}] nápověda: co dělá daná karta", ++actionNumber);
             if (actionDice.Count == 0)
-                Console.WriteLine("{0} = konec kola", ++actionNumber);
+                Console.WriteLine("[{0}] konec kola", ++actionNumber);
+            Console.WriteLine();
         }
         private static void TakeAction(byte actionIndex)
         {
@@ -565,6 +567,9 @@ namespace RomeBoardGame
                 hands[ActivePlayer].RemoveAt(hands[ActivePlayer].Count - 1);    // Removing the last card in hand (it never should have been there).
                 hands[ActivePlayer].Remove(slots[ActivePlayer][chosenSlot]!);   // Removing the picked card from actual hand.
                 PayForCard(slots[ActivePlayer][chosenSlot]!);  // Paying the cost of the card.
+                Console.WriteLine();
+                Console.WriteLine("Aktuální stav slotů:");
+                PrintSlots();
             }
         }
 
@@ -810,11 +815,7 @@ namespace RomeBoardGame
         /// </summary>
         private static byte ChooseActionDie()
         {
-            Console.WriteLine("Zbývající hodnoty akčních kostek:");
-            foreach (byte die in actionDice)
-            {
-                Console.WriteLine("hodnota {0}", die);
-            }
+            PrintRemainingActionDiceValues();
             Console.WriteLine();
             string answer;
             byte chosenDieValue;
@@ -837,12 +838,20 @@ namespace RomeBoardGame
 
             return chosenDieValue;
         }
+        private static void PrintRemainingActionDiceValues()
+        {
+            Console.WriteLine("Zbývající hodnoty akčních kostek:");
+            foreach (byte die in actionDice)
+            {
+                Console.WriteLine("hodnota {0}", die);
+            }
+        }
         /// <summary>
         /// For player, the slot numbers are 1, 2, 3, 4, 5, 6. In code, they are 0–5 => conversion must take place.
         /// </summary>
         /// <returns>Slot number 0–5.</returns>
         private static byte ChooseSlot()
-        {
+        {            
             Console.WriteLine();
             Console.WriteLine("Aktuální stav slotů:");
             PrintSlots();
@@ -1207,8 +1216,8 @@ namespace RomeBoardGame
             }
             else
             {
-                Console.WriteLine("Hra stále pokračuje.");
-                PrintStatsVictoryPoints();
+                // Game hasn't ended yet.
+                // PrintStatsVictoryPoints();
             }
         }
         /// <summary>
