@@ -84,6 +84,7 @@ namespace RomeBoardGame
         private static bool freeBuldings = false;
         private static bool freeCharacters = false;
         private static bool hiddenCardsInSlots = false;
+        private static bool turnEnding = false;
         private static byte actionNumber = 0;
         private static byte opponentsDefenseLoweredBy = 0;
         private enum GameStates { GameStarting, Preparation, PayingVictoryPoints, RollingActionDice, TakingActions, GameEnded };
@@ -141,23 +142,27 @@ namespace RomeBoardGame
                         gameState = GameStates.PayingVictoryPoints;
                         break;
                     case GameStates.PayingVictoryPoints:
+                        StartTurn();
                         LoseVictoryPointsToSupply(GetNumberOfEmptySlots(true));
                         if (gameState != GameStates.GameEnded)
                             gameState = GameStates.RollingActionDice;
                         break;
                     case GameStates.RollingActionDice:
-                        StartTurn();
+                        RollActionDice();
                         gameState = GameStates.TakingActions;
                         break;
                     case GameStates.TakingActions:
-                        while (actionDice.Count > 0)
+                        while (!turnEnding)
                         {
                             Console.WriteLine();
+                            PrintPlayerStats(); // Prints the amount of money and victory points of both players, then prints the state of the slots on both sides.
                             PrintPossibleActions();
+                            PrintSlots();
                             TakeAction(PromptForNumber(1, actionNumber));
                             if (gameState != GameStates.GameEnded)
                                 gameState = GameStates.PayingVictoryPoints;
-                        }                        
+                        }
+                        EndTurn();
                         break;
                     case GameStates.GameEnded:
                         Console.Write("Zmáčknutím libovolné klávesy ukončíte aplikaci... ");
@@ -182,11 +187,11 @@ namespace RomeBoardGame
         {
             freeBuldings = false;
             freeCharacters = false;
+            turnEnding = false;
             opponentsDefenseLoweredBy = 0;
             blockedSlotsCurrent = blockedSlotsOfOpponentNextTurn;
             blockedSlotsOfOpponentNextTurn = new List<byte>();
             ToggleActivePlayer();
-            StartTurn();
         }
 
         private static void PrintGameStart()
@@ -467,7 +472,7 @@ namespace RomeBoardGame
                     LookUpCardTooltip();
                     break;
                 case 6:
-                    EndTurn();
+                    turnEnding = true;
                     break;
                 default:
                     throw new ArgumentException("V tahu hráče byla zvolena neznámá akce. Kontaktujte programátora.", "Zvolena neexistující akce");
@@ -568,7 +573,6 @@ namespace RomeBoardGame
                 hands[ActivePlayer].Remove(slots[ActivePlayer][chosenSlot]!);   // Removing the picked card from actual hand.
                 PayForCard(slots[ActivePlayer][chosenSlot]!);  // Paying the cost of the card.
                 Console.WriteLine();
-                Console.WriteLine("Aktuální stav slotů:");
                 PrintSlots();
             }
         }
@@ -1147,7 +1151,7 @@ namespace RomeBoardGame
             if (actionDice.Count <= 0)
             {
                 Console.WriteLine();
-                PrintActionUnavailable("už nemáš žádnou nepoužitou akční kostku.");
+                PrintActionUnavailable("už nemáš žádnou nepoužitou akční kostku");
                 RefundActionDie();
             }
             else
@@ -1283,7 +1287,7 @@ namespace RomeBoardGame
         }
         internal static void LoseVictoryPointsToSupply(byte penalty)
         {
-            Console.WriteLine("Celková ztráta vítězných bodů: {0}", penalty);
+            Console.WriteLine("Celková ztráta vítězných bodů kvůli prázdným slotům: {0}", penalty);
             playerStats[ActivePlayer][1] -= penalty;
             CheckIfGameEnded();
         }
