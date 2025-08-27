@@ -33,7 +33,7 @@ namespace RomeBoardGame
             discardPile = new List<Card>(); // Emptying discard pile.
             var typeOfCard = typeof(Card);
             var cardTypes = typeOfCard.Assembly.GetTypes().Where(t => t.IsSubclassOf(typeOfCard));
-            cardTypes.OrderBy(type => type.Name);
+            cardTypes = cardTypes.OrderBy(type => type.Name);
             foreach (var cardType in cardTypes)
             {
                 var count = cardType.GetField("Count", BindingFlags.Public | BindingFlags.Static)!.GetValue(null) ?? 0;
