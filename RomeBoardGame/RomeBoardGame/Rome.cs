@@ -150,11 +150,14 @@ namespace RomeBoardGame
                         gameState = GameStates.TakingActions;
                         break;
                     case GameStates.TakingActions:
-                        Console.WriteLine();
-                        PrintPossibleActions();
-                        TakeAction(PromptForNumber(1, actionNumber));
-                        if (gameState != GameStates.GameEnded)
-                            gameState = GameStates.PayingVictoryPoints;
+                        while (actionDice.Count > 0)
+                        {
+                            Console.WriteLine();
+                            PrintPossibleActions();
+                            TakeAction(PromptForNumber(1, actionNumber));
+                            if (gameState != GameStates.GameEnded)
+                                gameState = GameStates.PayingVictoryPoints;
+                        }                        
                         break;
                     case GameStates.GameEnded:
                         Console.Write("Zmáčknutím libovolné klávesy ukončíte aplikaci... ");
@@ -255,6 +258,7 @@ namespace RomeBoardGame
             if (card == null)
                 throw new ArgumentException("V nápovědě byla zvolena neznámá karta. Kontaktujte programátora.", "Nápověda: neexistující karta");
             Console.WriteLine(card!.ToString());
+            Console.WriteLine();
             Console.Write("K pokračování zmáčkni libovolnou klávesu... ");
             Console.ReadKey();
             Console.WriteLine();
@@ -275,7 +279,9 @@ namespace RomeBoardGame
             Console.WriteLine();
             Console.WriteLine("NÁPOVĚDA – zvol si kartu, která má být vysvětlena:");
             PrintPile(listOfAllCardTypes);
-            ReadCardTooltip(listOfAllCardTypes[PromptForNumber(1, (byte)listOfAllCardTypes.Count) - 1]);
+            byte cardTypeIndex = (byte)(PromptForNumber(1, (byte)listOfAllCardTypes.Count) - 1);
+            Console.WriteLine();
+            ReadCardTooltip(listOfAllCardTypes[cardTypeIndex]);
         }
 
         // Other actions (info, etc.):
@@ -296,13 +302,13 @@ namespace RomeBoardGame
                     activePlayerCardInSlot = false;
                     if (activePlayerSlots[i] != emptySlotValue)
                     {
-                        charactersLeft -= hiddenCardName.Length;
+                        charactersLeft -= activePlayerSlots[i]!.Name.Length;
                         activePlayerCardInSlot = true;
                     }
                     for (int j = charactersLeft; j > 0; j--)
                         sb.Append(' ');
                     if (activePlayerCardInSlot)
-                        sb.Append(hiddenCardName);
+                        sb.Append(activePlayerSlots[i]!.Name);
 
                     sb.Append($" #{i + 1}# "); // space #slotNumber# space
 
@@ -315,6 +321,7 @@ namespace RomeBoardGame
                     }
                     for (int j = charactersLeft; j > 0; j--)
                         sb.Append(' ');
+                    sb.Append('\n');
                 }
             }
             else
@@ -345,12 +352,13 @@ namespace RomeBoardGame
                     }
                     for (int j = charactersLeft; j > 0; j--)
                         sb.Append(' ');
+                    sb.Append('\n');
                 }
-
-                // Outputting the slot stats:
-                Console.WriteLine(sb.ToString());
-                sb.Clear();
             }
+
+            // Outputting the slot stats:
+            Console.WriteLine(sb.ToString());
+            sb.Clear();
         }
         public static void PrintOverviewStats()
         {
